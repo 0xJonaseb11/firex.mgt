@@ -1,0 +1,16 @@
+---
+description: Never add Cursor or agent git commit/PR attribution
+alwaysApply: true
+---
+
+# Git attribution
+
+Never add any of the following to commits, commit messages, or pull requests in this repository:
+
+- `Co-authored-by: Cursor <cursoragent@cursor.com>`
+- `Made-with: Cursor` (or similar trailers)
+- Any other Cursor/agent co-author or attribution trailer
+
+Commits must only reflect the human author configured for this repo (`0xJonaseb11 <sebejaz99@gmail.com>`).
+
+When creating git commits via shell, use plain `git commit -m "message"` with no trailers.

@@ -158,10 +158,10 @@ Create an API endpoint to register a new fire extinguisher.
   * Dry Chemical
 * Size
 
-  * 1.5 lb
-  * 5 lb
-  * 9 lb
-  * 12 lb
+  * 2.5 lbs.
+  * 5 lbs.
+  * 9 lbs.
+  * 12 lbs.
 * Installation Date
 * Expiry Date
 * Status
@@ -299,6 +299,10 @@ All commits in this repository must be authored by:
 
 Do **not** commit as any other identity (including Cursor/agent defaults or other contributors).
 
+Never add Cursor/agent git trailers (`Co-authored-by: Cursor`, `Made-with: Cursor`, or similar). Repo hooks strip and reject them.
+
+In Cursor: **Settings → Agents → Attribution** → turn off commit and PR attribution. CLI uses `~/.cursor/cli-config.json` with `"attributeCommitsToAgent": false`.
+
 ## One-time setup (human developer)
 
 From the repo root:
@@ -307,7 +311,7 @@ From the repo root:
 npm run setup:git
 ```
 
-This sets repo-local `user.name`, `user.email`, and enables `.githooks/pre-commit` to block wrong authors.
+This sets repo-local `user.name`, `user.email`, and enables `.githooks` (author check, strip Cursor trailers).
 
 ## New clone / other machine
 
