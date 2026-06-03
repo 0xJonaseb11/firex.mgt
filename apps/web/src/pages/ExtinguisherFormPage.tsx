@@ -20,6 +20,7 @@ import {
 	extinguisherTypeLabels,
 } from "@web/lib/labels";
 import { useToast } from "@web/contexts/ToastContext";
+import { getApiErrorMessage } from "@web/lib/api-error-message";
 import { zodFieldErrors } from "@web/lib/form-errors";
 
 const defaultValues = {
@@ -122,10 +123,7 @@ export function ExtinguisherFormPage() {
 				navigate(`/extinguishers/${response.data.id}`);
 			}
 		} catch (err) {
-			const message =
-				err instanceof ApiError
-					? err.message
-					: "Unable to save extinguisher.";
+			const message = getApiErrorMessage(err, "Unable to save extinguisher.");
 			setError(message);
 			toast.error(message);
 		} finally {

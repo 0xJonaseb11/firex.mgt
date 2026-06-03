@@ -1,15 +1,15 @@
 import { useEffect, useState } from "react";
-import { Link, useSearchParams } from "react-router-dom";
+import { Link } from "react-router-dom";
 
 import { authApi } from "@web/api/auth";
 import { ApiError } from "@web/api/client";
 import { LoadingState } from "@web/components/LoadingState";
 import { useToast } from "@web/contexts/ToastContext";
+import { useConsumeUrlToken } from "@web/lib/use-consume-url-token";
 
 export function VerifyEmailPage() {
 	const toast = useToast();
-	const [searchParams] = useSearchParams();
-	const token = searchParams.get("token") ?? "";
+	const token = useConsumeUrlToken("token");
 
 	const [status, setStatus] = useState<"loading" | "success" | "error">(
 		token ? "loading" : "error",

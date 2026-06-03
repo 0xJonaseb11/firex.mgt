@@ -6,6 +6,7 @@ import helmet from "helmet";
 
 import config from "@api/config";
 import { sql } from "@api/db";
+import { grandfatherExistingUserEmails } from "@api/db/queries";
 import {
 	detectDatabaseProvider,
 	verifyDatabaseConnection,
@@ -16,7 +17,9 @@ import {
 	requestLogger,
 } from "@api/middlewares";
 import { createAuthRouter } from "@api/routers/auth";
+import { bootstrapEmailTransport } from "@api/lib/email/client";
 import { createDocsRouter } from "@api/routers/docs";
+import { createDevMailRouter } from "@api/routers/dev-mail";
 import { createExtinguishersRouter } from "@api/routers/extinguishers";
 import { createHealthRouter } from "@api/routers/health";
 import { createInspectionsRouter } from "@api/routers/inspections";
@@ -31,6 +34,18 @@ async function startServer() {
 		const databaseProvider = detectDatabaseProvider(config.databaseUrl);
 		await verifyDatabaseConnection(sql);
 		logger.info("Database connected", { provider: databaseProvider });
+		await grandfatherExistingUserEmails();
+		await bootstrapEmailTransport();
+		logger.info("Email delivery", {
+			provider: config.emailProvider,
+			resendConfigured: Boolean(config.resendApiKey),
+			brevoConfigured: Boolean(
+				config.brevoApiKey && config.brevoSenderEmail,
+			),
+			from: config.emailFrom,
+			brevoSender: config.brevoSenderEmail,
+			appPublicUrl: config.appPublicUrl,
+		});
 
 		const app = express();
 
@@ -60,6 +75,9 @@ async function startServer() {
 		api.use("/maintenance", createMaintenanceRouter());
 		api.use("/notifications", createNotificationsRouter());
 		api.use("/reports", createReportsRouter());
+		if (config.isDevelopment) {
+			api.use("/dev/mail", createDevMailRouter());
+		}
 		app.use("/api", api);
 
 		app.use((req, res) => {

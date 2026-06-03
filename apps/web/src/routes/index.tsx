@@ -9,6 +9,7 @@ import { ConfirmProvider } from "@web/contexts/ConfirmContext";
 import { ToastProvider } from "@web/contexts/ToastContext";
 import { AdminUsersPage } from "@web/pages/AdminUsersPage";
 import { DashboardPage } from "@web/pages/DashboardPage";
+import { DevMailPage } from "@web/pages/DevMailPage";
 import { ExtinguisherDetailPage } from "@web/pages/ExtinguisherDetailPage";
 import { ExtinguisherFormPage } from "@web/pages/ExtinguisherFormPage";
 import { ExtinguishersPage } from "@web/pages/ExtinguishersPage";
@@ -86,6 +87,16 @@ export const AppRoutes = () => (
 									</RoleGuard>
 								}
 							/>
+							{import.meta.env.DEV ? (
+								<Route
+									path="/dev-mail"
+									element={
+										<RoleGuard roles={["admin"]}>
+											<DevMailPage />
+										</RoleGuard>
+									}
+								/>
+							) : null}
 							<Route path="/profile" element={<ProfilePage />} />
 						</Route>
 					</Route>

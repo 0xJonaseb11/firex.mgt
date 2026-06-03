@@ -22,6 +22,9 @@ const navItems: NavItem[] = [
 	{ to: "/maintenance", label: "Maintenance", roles: ["inspector", "admin"] },
 	{ to: "/reports", label: "Reports", roles: ["inspector", "admin"] },
 	{ to: "/users", label: "Users", roles: ["admin"] },
+	...(import.meta.env.DEV
+		? [{ to: "/dev-mail", label: "Dev mail", roles: ["admin"] as UserRole[] }]
+		: []),
 	{ to: "/profile", label: "Profile" },
 ];
 

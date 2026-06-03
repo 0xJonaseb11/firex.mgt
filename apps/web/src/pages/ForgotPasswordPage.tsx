@@ -1,5 +1,5 @@
 import { useState, type FormEvent } from "react";
-import { Link, useSearchParams } from "react-router-dom";
+import { Link } from "react-router-dom";
 import { forgotPasswordSchema, resetPasswordSchema } from "@repo/contracts";
 
 import { authApi } from "@web/api/auth";
@@ -8,17 +8,14 @@ import { ErrorAlert } from "@web/components/ErrorAlert";
 import { FormField } from "@web/components/FormField";
 import { useToast } from "@web/contexts/ToastContext";
 import { zodFieldErrors } from "@web/lib/form-errors";
+import { useConsumeUrlToken } from "@web/lib/use-consume-url-token";
 
 export function ForgotPasswordPage() {
 	const toast = useToast();
-	const [searchParams] = useSearchParams();
-	const tokenFromUrl = searchParams.get("token") ?? "";
-	const [mode, setMode] = useState<"request" | "reset">(
-		tokenFromUrl ? "reset" : "request",
-	);
+	const resetToken = useConsumeUrlToken("token");
+	const isResetMode = Boolean(resetToken);
 
 	const [email, setEmail] = useState("");
-	const [token, setToken] = useState(tokenFromUrl);
 	const [newPassword, setNewPassword] = useState("");
 	const [fieldErrors, setFieldErrors] = useState<
 		Record<string, string | undefined>
@@ -65,7 +62,17 @@ export function ForgotPasswordPage() {
 		setErrorMessage(null);
 		setFieldErrors({});
 
-		const parsed = resetPasswordSchema.safeParse({ token, newPassword });
+		if (!resetToken) {
+			setErrorMessage(
+				"This reset link is invalid or expired. Request a new link below.",
+			);
+			return;
+		}
+
+		const parsed = resetPasswordSchema.safeParse({
+			token: resetToken,
+			newPassword,
+		});
 		if (!parsed.success) {
 			setFieldErrors(zodFieldErrors(parsed.error));
 			return;
@@ -73,7 +80,7 @@ export function ForgotPasswordPage() {
 
 		setSubmitting(true);
 		try {
-			const response = await authApi.resetPassword(parsed.data);
+			await authApi.resetPassword(parsed.data);
 			const message = "Password updated. You may sign in now.";
 			setSuccessMessage(message);
 			toast.success(message);
@@ -91,27 +98,18 @@ export function ForgotPasswordPage() {
 
 	return (
 		<section>
-			<h2 className="auth-card__section-title">Password reset</h2>
-			<div className="tab-list" role="tablist">
-				<button
-					type="button"
-					role="tab"
-					className={mode === "request" ? "tab tab--active" : "tab"}
-					aria-selected={mode === "request"}
-					onClick={() => setMode("request")}
-				>
-					Request reset
-				</button>
-				<button
-					type="button"
-					role="tab"
-					className={mode === "reset" ? "tab tab--active" : "tab"}
-					aria-selected={mode === "reset"}
-					onClick={() => setMode("reset")}
-				>
-					Enter token
-				</button>
-			</div>
+			<h2 className="auth-card__section-title">
+				{isResetMode ? "Choose a new password" : "Password reset"}
+			</h2>
+			{isResetMode ? (
+				<p className="auth-card__lead">
+					Enter a new password for your account. This link can only be used once.
+				</p>
+			) : (
+				<p className="auth-card__lead">
+					We will email you a secure link to reset your password.
+				</p>
+			)}
 
 			{successMessage ? (
 				<div className="alert alert-success" role="status">
@@ -120,7 +118,28 @@ export function ForgotPasswordPage() {
 			) : null}
 			{errorMessage ? <ErrorAlert message={errorMessage} /> : null}
 
-			{mode === "request" ? (
+			{isResetMode ? (
+				<form className="form-stack" onSubmit={handleReset} noValidate>
+					<FormField
+						label="New password"
+						type="password"
+						name="newPassword"
+						autoComplete="new-password"
+						value={newPassword}
+						onChange={(event) => setNewPassword(event.target.value)}
+						error={fieldErrors.newPassword}
+						hint="At least 8 characters with upper, lower, number, and special character."
+						required
+					/>
+					<button
+						type="submit"
+						className="btn btn-primary btn-block"
+						disabled={submitting}
+					>
+						{submitting ? "Updating..." : "Update password"}
+					</button>
+				</form>
+			) : (
 				<form className="form-stack" onSubmit={handleRequest} noValidate>
 					<FormField
 						label="Email"
@@ -140,38 +159,16 @@ export function ForgotPasswordPage() {
 						{submitting ? "Sending..." : "Send reset link"}
 					</button>
 				</form>
-			) : (
-				<form className="form-stack" onSubmit={handleReset} noValidate>
-					<FormField
-						label="Reset token"
-						name="token"
-						value={token}
-						onChange={(event) => setToken(event.target.value)}
-						error={fieldErrors.token}
-						required
-					/>
-					<FormField
-						label="New password"
-						type="password"
-						name="newPassword"
-						autoComplete="new-password"
-						value={newPassword}
-						onChange={(event) => setNewPassword(event.target.value)}
-						error={fieldErrors.newPassword}
-						required
-					/>
-					<button
-						type="submit"
-						className="btn btn-primary btn-block"
-						disabled={submitting}
-					>
-						{submitting ? "Updating..." : "Update password"}
-					</button>
-				</form>
 			)}
 
 			<p className="auth-card__links">
 				<Link to="/login">Back to sign in</Link>
+				{isResetMode ? (
+					<>
+						<span aria-hidden="true"> | </span>
+						<Link to="/forgot-password">Request a new link</Link>
+					</>
+				) : null}
 			</p>
 		</section>
 	);

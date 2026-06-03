@@ -1,5 +1,6 @@
 import type { NextFunction, Request, Response } from "express";
 
+import { getUserById } from "@api/db/queries";
 import type { UserRole } from "@api/db/schema";
 import { ApiError } from "@api/lib/errors";
 import { checkTokens, setTokenCookies } from "@api/utils/create-auth-tokens";
@@ -28,7 +29,12 @@ export const requireAuth = asyncHandler(
 
 		req.userId = result.userId;
 		req.userRole = result.role;
-		req.user = result.user;
+		req.user =
+			result.user ?? (await getUserById(result.userId)) ?? undefined;
+
+		if (!req.user) {
+			throw new ApiError({ code: "UNAUTHORIZED" });
+		}
 
 		next();
 	},
@@ -90,17 +96,18 @@ export const requireVerifiedEmail = (
 	_res: Response,
 	next: NextFunction,
 ) => {
-	if (!req.user) {
+	const user = req.user;
+	if (!user) {
 		throw new ApiError({ code: "UNAUTHORIZED" });
 	}
-	if (req.user.role === "admin") {
+	if (user.role === "admin" || user.role === "inspector") {
 		return next();
 	}
-	if (!req.user.emailVerified) {
+	if (!user.emailVerified) {
 		throw new ApiError({
 			code: "FORBIDDEN",
 			message: "Verify your email address to perform this action",
-			details: { code: "EMAIL_NOT_VERIFIED", email: req.user.email },
+			details: { code: "EMAIL_NOT_VERIFIED", email: user.email },
 		});
 	}
 	next();

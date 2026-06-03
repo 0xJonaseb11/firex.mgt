@@ -1,9 +1,17 @@
+import path from "node:path";
+import { fileURLToPath } from "node:url";
+
 import dotenv from "dotenv";
 import { z } from "zod";
 
 import { resolveDatabaseUrlFromEnv } from "@api/lib/database";
 
-dotenv.config();
+const apiRoot = path.resolve(
+	path.dirname(fileURLToPath(import.meta.url)),
+	"..",
+);
+// Turbo runs from the monorepo root; always load apps/api/.env explicitly.
+dotenv.config({ path: path.join(apiRoot, ".env") });
 
 const configSchema = z
 	.object({
@@ -28,7 +36,13 @@ const configSchema = z
 		CORS_ORIGIN: z.string().default("http://localhost:5173"),
 		REFRESH_TOKEN_SECRET: z.string(),
 		ACCESS_TOKEN_SECRET: z.string(),
+		EMAIL_PROVIDER: z
+			.enum(["resend", "brevo", "ethereal", "auto"])
+			.default("auto"),
 		RESEND_API_KEY: z.string().optional(),
+		BREVO_API_KEY: z.string().optional(),
+		BREVO_SENDER_EMAIL: z.string().email().optional(),
+		BREVO_SENDER_NAME: z.string().default("TZW Fire Safety"),
 		EMAIL_FROM: z.string().default("TZW Fire Safety <onboarding@resend.dev>"),
 		APP_PUBLIC_URL: z.string().url().default("http://localhost:5173"),
 	})
@@ -120,7 +134,11 @@ export const config = {
 	supabaseProjectRef: parsed.data.SUPABASE_PROJECT_REF,
 	refreshTokenSecret: parsed.data.REFRESH_TOKEN_SECRET,
 	accessTokenSecret: parsed.data.ACCESS_TOKEN_SECRET,
+	emailProvider: parsed.data.EMAIL_PROVIDER,
 	resendApiKey: parsed.data.RESEND_API_KEY?.trim() || undefined,
+	brevoApiKey: parsed.data.BREVO_API_KEY?.trim() || undefined,
+	brevoSenderEmail: parsed.data.BREVO_SENDER_EMAIL?.trim() || undefined,
+	brevoSenderName: parsed.data.BREVO_SENDER_NAME,
 	emailFrom: parsed.data.EMAIL_FROM,
 	appPublicUrl: parsed.data.APP_PUBLIC_URL.replace(/\/$/, ""),
 };

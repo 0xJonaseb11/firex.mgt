@@ -1,4 +1,5 @@
 export * from "./users.js";
+export * from "./grandfather-users.js";
 export * from "./extinguishers.js";
 export * from "./inspections.js";
 export * from "./maintenance.js";
