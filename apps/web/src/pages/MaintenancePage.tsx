@@ -13,7 +13,7 @@ import { JsonPreview } from "@web/components/JsonPreview";
 import { PageHeader } from "@web/components/PageHeader";
 import { ViewModeToggle, type ViewMode } from "@web/components/ViewModeToggle";
 import { useToast } from "@web/contexts/ToastContext";
-import { formatDate, formatUserName } from "@web/lib/labels";
+import { formatDate, formatUserBrief } from "@web/lib/labels";
 import { zodFieldErrors } from "@web/lib/form-errors";
 
 const formDefaults = {
@@ -48,7 +48,7 @@ export function MaintenancePage() {
 				extinguisherId: extinguisherFilter || undefined,
 			});
 			const [maintenanceResponse, extinguishersResponse] = await Promise.all([
-				maintenanceApi.list(filters),
+				maintenanceApi.list({ ...filters, limit: 100 }),
 				extinguishersApi.list({ limit: 100 }),
 			]);
 			setItems(maintenanceResponse.data);
@@ -233,7 +233,7 @@ export function MaintenancePage() {
 				/>
 			) : (
 				<div className="table-wrap">
-					<table className="data-table">
+					<table className="data-table data-table--compact">
 						<thead>
 							<tr>
 								<th scope="col">Date</th>
@@ -252,12 +252,7 @@ export function MaintenancePage() {
 									</td>
 									<td>{item.actionTaken}</td>
 									<td>
-										{item.performedBy
-											? formatUserName(
-													item.performedBy.firstName,
-													item.performedBy.lastName,
-												)
-											: item.performedById}
+										{formatUserBrief(item.performedBy, "Unknown user")}
 									</td>
 									<td>{item.issuesIdentified ?? "None recorded"}</td>
 								</tr>

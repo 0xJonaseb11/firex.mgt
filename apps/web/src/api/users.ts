@@ -17,7 +17,16 @@ type ListResponse = {
 	limit: number;
 };
 
+type InspectorBrief = Pick<User, "id" | "firstName" | "lastName" | "role">;
+
 export const usersApi = {
+	async listInspectors() {
+		const response = await apiRequest<{ items: InspectorBrief[] }>(
+			"/users/inspectors",
+		);
+		return { data: response.items };
+	},
+
 	async list(filters: UserFilters = {}) {
 		const response = await apiRequest<ListResponse>(
 			`/users${buildQuery(filters)}`,

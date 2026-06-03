@@ -64,15 +64,18 @@ export interface Extinguisher {
 export interface Inspection {
 	id: string;
 	extinguisherId: string;
+	scheduledById: string;
+	scheduledBy?: Pick<User, "id" | "firstName" | "lastName"> | null;
 	scheduledDate: string;
 	scheduledTime: string;
 	status: string;
 	assignedInspectorId?: string | null;
 	assignedInspector?: Pick<User, "id" | "firstName" | "lastName"> | null;
+	completedById?: string | null;
+	completedBy?: Pick<User, "id" | "firstName" | "lastName"> | null;
 	extinguisher?: Pick<Extinguisher, "id" | "serialNumber" | "location"> | null;
 	notes?: string | null;
 	completedAt?: string | null;
-	cancelledAt?: string | null;
 	cancelReason?: string | null;
 	createdAt: string;
 	updatedAt: string;
@@ -91,6 +94,53 @@ export interface MaintenanceRecord {
 	createdAt: string;
 }
 
+export interface ChartSegment {
+	label: string;
+	value: number;
+	color: string;
+}
+
+export interface DashboardHighlight {
+	label: string;
+	value: number;
+	to?: string;
+	accent?: "slate" | "sage" | "clay" | "mist";
+}
+
+export interface DashboardUpcomingInspection {
+	id: string;
+	scheduledDate: string;
+	scheduledTime: string;
+	status: string;
+	extinguisherSerial: string;
+	extinguisherLocation: string;
+}
+
+export interface DashboardData {
+	role: UserRole;
+	generatedAt: string;
+	greeting?: string;
+	scope: string;
+	metrics: Record<string, number>;
+	charts: {
+		extinguisherStatus: ChartSegment[];
+		extinguisherTypes?: ChartSegment[];
+		inspectionStatus: ChartSegment[];
+		userRoles?: ChartSegment[];
+	};
+	highlights: DashboardHighlight[];
+	upcomingInspections?: DashboardUpcomingInspection[];
+	permissions: {
+		canViewReports: boolean;
+		canViewUsers: boolean;
+		canViewMaintenance: boolean;
+		canManageInventory: boolean;
+		canViewAllInspections: boolean;
+		canScheduleInspections: boolean;
+		canAssignInspector: boolean;
+	};
+}
+
 export interface DashboardMetrics {
 	totalExtinguishers: number;
 	activeExtinguishers: number;
@@ -101,12 +151,33 @@ export interface DashboardMetrics {
 	completedInspectionsThisMonth: number;
 }
 
+export interface ReportPeriodCount {
+	period: string;
+	count: number;
+}
+
+export interface ReportUpcomingExpiration {
+	serialNumber: string;
+	location: string;
+	expiryDate: string;
+	status: string;
+	daysUntilExpiry: number;
+}
+
 export interface ReportSummary {
 	generatedAt: string;
+	period?: { fromDate?: string; toDate?: string };
 	inventory: {
 		total: number;
 		byStatus: Record<string, number>;
 		byType: Record<string, number>;
+		summaries: {
+			daily: ReportPeriodCount[];
+			monthly: ReportPeriodCount[];
+			yearly: ReportPeriodCount[];
+			registeredToday: number;
+			registeredInRange: number;
+		};
 	};
 	inspections: {
 		pending: number;
@@ -118,10 +189,15 @@ export interface ReportSummary {
 		expired: number;
 		expiringWithin30Days: number;
 		needsMaintenance: number;
+		upcomingExpirations: ReportUpcomingExpiration[];
 	};
 	maintenance: {
 		totalLogs: number;
 		last30Days: number;
+		logsByMonth: ReportPeriodCount[];
+		recentActivities: number;
+		distinctExtinguishersServiced: number;
+		averageLogsPerExtinguisher: number;
 	};
 }
 

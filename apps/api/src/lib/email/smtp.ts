@@ -67,12 +67,17 @@ export async function sendViaSmtp(input: SendEmailInput): Promise<boolean> {
 	try {
 		if (!smtpReady) {
 			const ok = await initSmtpTransport();
-			if (!ok || !transport) {
+			if (!ok) {
 				return false;
 			}
 		}
 
-		const info = await transport.sendMail({
+		const activeTransport = transport;
+		if (!activeTransport) {
+			return false;
+		}
+
+		const info = await activeTransport.sendMail({
 			from: config.emailFrom,
 			to: input.to,
 			subject: input.subject,

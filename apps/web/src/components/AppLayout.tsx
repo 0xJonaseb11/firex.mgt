@@ -1,4 +1,5 @@
-import { NavLink, Outlet, useNavigate } from "react-router-dom";
+import { useCallback, useEffect, useState } from "react";
+import { NavLink, Outlet, useLocation, useNavigate } from "react-router-dom";
 
 import type { UserRole } from "@repo/contracts";
 
@@ -32,6 +33,32 @@ export function AppLayout() {
 	const { user, logout, logoutAll } = useAuth();
 	const { confirm } = useConfirm();
 	const navigate = useNavigate();
+	const location = useLocation();
+	const [navOpen, setNavOpen] = useState(false);
+
+	const closeNav = useCallback(() => setNavOpen(false), []);
+
+	useEffect(() => {
+		closeNav();
+	}, [location.pathname, closeNav]);
+
+	useEffect(() => {
+		if (!navOpen) {
+			document.body.style.overflow = "";
+			return;
+		}
+		document.body.style.overflow = "hidden";
+		const onKeyDown = (event: KeyboardEvent) => {
+			if (event.key === "Escape") {
+				closeNav();
+			}
+		};
+		window.addEventListener("keydown", onKeyDown);
+		return () => {
+			document.body.style.overflow = "";
+			window.removeEventListener("keydown", onKeyDown);
+		};
+	}, [navOpen, closeNav]);
 
 	if (!user) {
 		return null;
@@ -69,9 +96,38 @@ export function AppLayout() {
 		navigate("/login");
 	};
 
+	const shellClass = navOpen ? "app-shell app-shell--nav-open" : "app-shell";
+
 	return (
-		<div className="app-shell">
-			<aside className="sidebar">
+		<div className={shellClass}>
+			<header className="mobile-topbar">
+				<button
+					type="button"
+					className={`mobile-topbar__menu btn btn-secondary${navOpen ? " mobile-topbar__menu--open" : ""}`}
+					aria-expanded={navOpen}
+					aria-controls="app-sidebar"
+					onClick={() => setNavOpen((open) => !open)}
+				>
+					<span className="mobile-topbar__menu-icon" aria-hidden="true" />
+					<span className="visually-hidden">
+						{navOpen ? "Close menu" : "Open menu"}
+					</span>
+				</button>
+				<div className="mobile-topbar__brand">
+					<span className="mobile-topbar__mark">TZW</span>
+					<span className="mobile-topbar__title">Fire Safety</span>
+				</div>
+			</header>
+
+			<button
+				type="button"
+				className="sidebar-backdrop"
+				aria-label="Close menu"
+				tabIndex={navOpen ? 0 : -1}
+				onClick={closeNav}
+			/>
+
+			<aside id="app-sidebar" className="sidebar">
 				<div className="sidebar__brand">
 					<span className="sidebar__brand-mark">TZW</span>
 					<div>
@@ -87,6 +143,7 @@ export function AppLayout() {
 							className={({ isActive }: { isActive: boolean }) =>
 								isActive ? "sidebar__link sidebar__link--active" : "sidebar__link"
 							}
+							onClick={closeNav}
 						>
 							{item.label}
 						</NavLink>
@@ -100,12 +157,16 @@ export function AppLayout() {
 						<p className="sidebar__user-role">{roleLabels[user.role]}</p>
 					</div>
 					<div className="sidebar__actions">
-						<button type="button" className="btn btn-secondary btn-sm" onClick={() => void handleLogout()}>
+						<button
+							type="button"
+							className="btn btn-secondary btn-sm btn-block"
+							onClick={() => void handleLogout()}
+						>
 							Sign out
 						</button>
 						<button
 							type="button"
-							className="btn btn-ghost btn-sm"
+							className="btn btn-ghost btn-sm btn-block"
 							onClick={() => void handleLogoutAll()}
 						>
 							Sign out all
@@ -113,9 +174,12 @@ export function AppLayout() {
 					</div>
 				</div>
 			</aside>
+
 			<main className="main-content">
 				<EmailVerificationBanner />
-				<Outlet />
+				<div className="main-content__container">
+					<Outlet />
+				</div>
 			</main>
 			<ConfirmDialog />
 		</div>

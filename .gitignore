@@ -35,6 +35,9 @@ yarn-error.log*
 .env
 .env*.local
 
+# database dumps (npm run db:backup)
+backups/
+
 # vercel
 .vercel
 

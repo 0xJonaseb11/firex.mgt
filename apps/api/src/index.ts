@@ -5,7 +5,7 @@ import express from "express";
 import helmet from "helmet";
 
 import config from "@api/config";
-import { resolvedDatabaseUrl, sql } from "@api/db";
+import { resolvedDatabaseUrl } from "@api/db";
 import { ensureEmailVerificationSchema } from "@api/db/ensure-schema";
 import { grandfatherExistingUserEmails } from "@api/db/queries";
 import { detectDatabaseProvider } from "@api/lib/database";
@@ -17,6 +17,7 @@ import {
 import { createAuthRouter } from "@api/routers/auth";
 import { bootstrapEmailTransport } from "@api/lib/email/client";
 import { isSmtpConfigured, isSmtpReady } from "@api/lib/email/smtp";
+import { createDashboardRouter } from "@api/routers/dashboard";
 import { createDocsRouter } from "@api/routers/docs";
 import { createDevMailRouter } from "@api/routers/dev-mail";
 import { createExtinguishersRouter } from "@api/routers/extinguishers";
@@ -39,24 +40,6 @@ async function startServer() {
 		});
 		await ensureEmailVerificationSchema();
 		await grandfatherExistingUserEmails();
-		await bootstrapEmailTransport();
-		logger.info("Email delivery", {
-			provider: config.emailProvider,
-			smtpConfigured: isSmtpConfigured(),
-			smtpReady: isSmtpReady(),
-			smtpUser: config.smtpUser,
-			resendConfigured: Boolean(config.resendApiKey),
-			brevoConfigured: Boolean(
-				config.brevoApiKey && config.brevoSenderEmail,
-			),
-			from: config.emailFrom,
-			brevoSender: config.brevoSenderEmail,
-			appPublicUrl: config.appPublicUrl,
-			note:
-				config.emailProvider === "ethereal"
-					? "Ethereal does not deliver to real inboxes — use smtp, brevo, or resend"
-					: undefined,
-		});
 
 		const app = express();
 
@@ -85,6 +68,7 @@ async function startServer() {
 		api.use("/inspections", createInspectionsRouter());
 		api.use("/maintenance", createMaintenanceRouter());
 		api.use("/notifications", createNotificationsRouter());
+		api.use("/dashboard", createDashboardRouter());
 		api.use("/reports", createReportsRouter());
 		if (config.isDevelopment) {
 			api.use("/dev/mail", createDevMailRouter());
@@ -106,6 +90,32 @@ async function startServer() {
 				environment: config.nodeEnv,
 			});
 		});
+
+		void bootstrapEmailTransport()
+			.then(() => {
+				logger.info("Email delivery", {
+					provider: config.emailProvider,
+					smtpConfigured: isSmtpConfigured(),
+					smtpReady: isSmtpReady(),
+					smtpUser: config.smtpUser,
+					resendConfigured: Boolean(config.resendApiKey),
+					brevoConfigured: Boolean(
+						config.brevoApiKey && config.brevoSenderEmail,
+					),
+					from: config.emailFrom,
+					brevoSender: config.brevoSenderEmail,
+					appPublicUrl: config.appPublicUrl,
+					note:
+						config.emailProvider === "ethereal"
+							? "Ethereal does not deliver to real inboxes — use smtp, brevo, or resend"
+							: undefined,
+				});
+			})
+			.catch((err) => {
+				logger.warn("Email transport bootstrap failed", {
+					error: err instanceof Error ? err.message : String(err),
+				});
+			});
 
 		server.on("error", (err: Error) => {
 			logger.error("Server startup error", {

@@ -21,6 +21,20 @@ export async function getUserById(id: string): Promise<User | undefined> {
 	return user;
 }
 
+export async function getUsersByIds(ids: string[]): Promise<Map<string, User>> {
+	const unique = [...new Set(ids.filter(Boolean))];
+	if (unique.length === 0) {
+		return new Map();
+	}
+
+	const rows = await db
+		.select()
+		.from(users)
+		.where(inArray(users.id, unique));
+
+	return new Map(rows.map((user) => [user.id, user]));
+}
+
 export async function getUserByEmail(email: string): Promise<User | undefined> {
 	const [user] = await db
 		.select()

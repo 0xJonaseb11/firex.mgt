@@ -186,7 +186,7 @@ export function AdminUsersPage() {
 				<EmptyState title="No users found" description="Adjust search filters." />
 			) : (
 				<div className="table-wrap">
-					<table className="data-table">
+					<table className="data-table data-table--compact">
 						<thead>
 							<tr>
 								<th scope="col">Name</th>

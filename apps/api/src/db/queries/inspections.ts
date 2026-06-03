@@ -1,4 +1,4 @@
-import { and, eq, gte, lte, sql } from "drizzle-orm";
+import { and, eq, gte, isNull, lte, or, sql } from "drizzle-orm";
 
 import { db } from "@api/db";
 import type { Inspection } from "@api/db/schema";
@@ -12,6 +12,10 @@ type InspectionFilter = {
 	status?: Inspection["status"];
 	extinguisherId?: string;
 	assignedInspectorId?: string;
+	/** Inspector sees assigned jobs plus unassigned pool */
+	forInspectorUserId?: string;
+	/** Regular users see inspections they scheduled */
+	scheduledByUserId?: string;
 	fromDate?: string;
 	toDate?: string;
 };
@@ -49,6 +53,17 @@ function buildFilterConditions(filter: InspectionFilter) {
 		conditions.push(
 			eq(inspections.assignedInspectorId, filter.assignedInspectorId),
 		);
+	}
+	if (filter.forInspectorUserId) {
+		conditions.push(
+			or(
+				eq(inspections.assignedInspectorId, filter.forInspectorUserId),
+				isNull(inspections.assignedInspectorId),
+			)!,
+		);
+	}
+	if (filter.scheduledByUserId) {
+		conditions.push(eq(inspections.scheduledBy, filter.scheduledByUserId));
 	}
 	if (filter.fromDate) {
 		conditions.push(gte(inspections.scheduledDate, filter.fromDate));

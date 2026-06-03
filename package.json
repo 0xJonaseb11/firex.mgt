@@ -9,7 +9,8 @@
 		"packages/*"
 	],
 	"scripts": {
-		"dev": "turbo dev",
+		"dev": "node scripts/dev.mjs",
+		"dev:turbo": "turbo dev",
 		"build": "turbo build",
 		"lint": "turbo lint",
 		"check-types": "turbo check-types",
@@ -17,7 +18,8 @@
 		"setup:git": "powershell -ExecutionPolicy Bypass -File scripts/setup-git-hooks.ps1",
 		"env:setup": "node scripts/setup-api-env.mjs",
 		"db:migrate": "npm run db:migrate --workspace=api",
-		"db:test": "npm run db:test --workspace=api"
+		"db:test": "npm run db:test --workspace=api",
+		"db:backup": "node scripts/db-backup.mjs"
 	},
 	"keywords": [],
 	"author": "0xJonaseb11 <sebejaz99@gmail.com>",

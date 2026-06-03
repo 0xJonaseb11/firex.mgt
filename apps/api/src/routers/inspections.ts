@@ -24,7 +24,10 @@ import {
 } from "@api/lib/email/notify-inspection";
 import { ApiError } from "@api/lib/errors";
 import { parseBody, parseParams, parseQuery } from "@api/lib/parse-body";
-import { serializeInspection } from "@api/lib/serializers";
+import {
+	enrichInspection,
+	enrichInspections,
+} from "@api/lib/record-enrichment";
 import {
 	asyncHandler,
 	requireAuth,
@@ -52,17 +55,21 @@ export function createInspectionsRouter(): Router {
 			const pagination = parseQuery(paginationSchema, req.query);
 			const filter = parseQuery(inspectionFilterSchema, req.query);
 
-			if (req.userRole === "inspector") {
-				filter.assignedInspectorId = req.userId;
-			}
-
 			const result = await listInspections(
-				filter,
+				{
+					...filter,
+					...(req.userRole === "inspector"
+						? { forInspectorUserId: req.userId! }
+						: {}),
+					...(req.userRole === "user"
+						? { scheduledByUserId: req.userId! }
+						: {}),
+				},
 				pagination.page,
 				pagination.limit,
 			);
 			res.json({
-				items: result.items.map(serializeInspection),
+				items: await enrichInspections(result.items),
 				total: result.total,
 				page: pagination.page,
 				limit: pagination.limit,
@@ -82,7 +89,7 @@ export function createInspectionsRouter(): Router {
 					message: "Inspection not found",
 				});
 			}
-			res.json({ inspection: serializeInspection(inspection) });
+			res.json({ inspection: await enrichInspection(inspection) });
 		}),
 	);
 
@@ -97,6 +104,17 @@ export function createInspectionsRouter(): Router {
 				throw new ApiError({
 					code: "NOT_FOUND",
 					message: "Fire extinguisher not found",
+				});
+			}
+
+			const canAssignInspector =
+				req.userRole === "admin" || req.userRole === "inspector";
+
+			if (body.assignedInspectorId && !canAssignInspector) {
+				throw new ApiError({
+					code: "FORBIDDEN",
+					message:
+						"Only inspectors and administrators can assign inspections to staff. Your request will be visible to the inspector team.",
 				});
 			}
 
@@ -117,7 +135,9 @@ export function createInspectionsRouter(): Router {
 				id: await generateId(),
 				extinguisherId: body.extinguisherId,
 				scheduledBy: req.userId!,
-				assignedInspectorId: body.assignedInspectorId ?? null,
+				assignedInspectorId: canAssignInspector
+					? (body.assignedInspectorId ?? null)
+					: null,
 				scheduledDate: body.scheduledDate,
 				scheduledTime: body.scheduledTime,
 				notes: body.notes ?? null,
@@ -127,7 +147,7 @@ export function createInspectionsRouter(): Router {
 			const inspectorIds = await inspectorRecipientIds(body.assignedInspectorId);
 			await notifyInspectionScheduled(inspection, extinguisher, inspectorIds);
 
-			res.status(201).json({ inspection: serializeInspection(inspection) });
+			res.status(201).json({ inspection: await enrichInspection(inspection) });
 		}),
 	);
 
@@ -168,7 +188,7 @@ export function createInspectionsRouter(): Router {
 			}
 
 			res.json({
-				inspection: inspection ? serializeInspection(inspection) : null,
+				inspection: inspection ? await enrichInspection(inspection) : null,
 			});
 		}),
 	);
@@ -223,7 +243,7 @@ export function createInspectionsRouter(): Router {
 			}
 
 			res.json({
-				inspection: inspection ? serializeInspection(inspection) : null,
+				inspection: inspection ? await enrichInspection(inspection) : null,
 			});
 		}),
 	);

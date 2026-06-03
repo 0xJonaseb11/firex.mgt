@@ -4,6 +4,7 @@ import { idParamSchema, paginationSchema, updateUserRoleSchema } from "@repo/con
 import {
 	deleteUser,
 	getUserById,
+	listInspectors,
 	listUsers,
 	updateUser,
 } from "@api/db/queries";
@@ -33,6 +34,22 @@ export function createUsersRouter(): Router {
 				total: users.length,
 				page,
 				limit,
+			});
+		}),
+	);
+
+	router.get(
+		"/inspectors",
+		requireAuth,
+		asyncHandler(async (_req, res) => {
+			const inspectors = await listInspectors();
+			res.json({
+				items: inspectors.map((inspector) => ({
+					id: inspector.id,
+					firstName: inspector.firstName,
+					lastName: inspector.lastName,
+					role: inspector.role,
+				})),
 			});
 		}),
 	);

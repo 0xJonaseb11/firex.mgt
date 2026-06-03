@@ -1,4 +1,4 @@
-import { and, eq, gte, ilike, lte, or, sql } from "drizzle-orm";
+import { and, eq, gte, ilike, inArray, lte, or, sql } from "drizzle-orm";
 
 import { db } from "@api/db";
 import type { FireExtinguisher } from "@api/db/schema";
@@ -30,6 +30,31 @@ export async function getExtinguisherById(
 		.where(eq(fireExtinguishers.id, id))
 		.limit(1);
 	return record;
+}
+
+export type ExtinguisherBrief = Pick<
+	FireExtinguisher,
+	"id" | "serialNumber" | "location"
+>;
+
+export async function getExtinguishersByIds(
+	ids: string[],
+): Promise<Map<string, ExtinguisherBrief>> {
+	const unique = [...new Set(ids.filter(Boolean))];
+	if (unique.length === 0) {
+		return new Map();
+	}
+
+	const rows = await db
+		.select({
+			id: fireExtinguishers.id,
+			serialNumber: fireExtinguishers.serialNumber,
+			location: fireExtinguishers.location,
+		})
+		.from(fireExtinguishers)
+		.where(inArray(fireExtinguishers.id, unique));
+
+	return new Map(rows.map((row) => [row.id, row]));
 }
 
 export async function getExtinguisherBySerial(

@@ -11,7 +11,18 @@ import {
 	requireRole,
 } from "@api/middlewares";
 
-const exportQuerySchema = z.object({
+const reportFilterSchema = z.object({
+	fromDate: z
+		.string()
+		.regex(/^\d{4}-\d{2}-\d{2}$/)
+		.optional(),
+	toDate: z
+		.string()
+		.regex(/^\d{4}-\d{2}-\d{2}$/)
+		.optional(),
+});
+
+const exportQuerySchema = reportFilterSchema.extend({
 	format: z.enum(["csv", "pdf"]).default("csv"),
 });
 
@@ -21,8 +32,10 @@ export function createReportsRouter(): Router {
 	router.get(
 		"/summary",
 		requireAuth,
-		asyncHandler(async (_req, res) => {
-			const summary = await generateReportSummary();
+		requireRole("admin", "inspector"),
+		asyncHandler(async (req, res) => {
+			const filter = parseQuery(reportFilterSchema, req.query);
+			const summary = await generateReportSummary(filter);
 			res.json({ report: serializeReportSummary(summary) });
 		}),
 	);
@@ -32,8 +45,8 @@ export function createReportsRouter(): Router {
 		requireAuth,
 		requireRole("admin", "inspector"),
 		asyncHandler(async (req, res) => {
-			const { format } = parseQuery(exportQuerySchema, req.query);
-			const summary = await generateReportSummary();
+			const { format, ...filter } = parseQuery(exportQuerySchema, req.query);
+			const summary = await generateReportSummary(filter);
 			const timestamp = new Date().toISOString().replace(/[:.]/g, "-");
 
 			if (format === "pdf") {

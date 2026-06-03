@@ -58,14 +58,20 @@ export function inspectionScheduledEmail(
 		scheduledDate: string;
 		scheduledTime: string;
 	},
+	assignmentHtml: string,
 	inspectionUrl: string,
+	isAssignedToRecipient: boolean,
 ) {
+	const subjectPrefix = isAssignedToRecipient
+		? "Assigned to you"
+		: "Inspection scheduled";
 	return {
-		subject: `Inspection scheduled: ${details.serialNumber}`,
+		subject: `${subjectPrefix}: ${details.serialNumber}`,
 		html: layout(
-			"Inspection scheduled",
+			isAssignedToRecipient ? "Inspection assigned to you" : "Inspection scheduled",
 			`<p>Hi ${firstName},</p>
-<p>An inspection has been scheduled for fire extinguisher <strong>${details.serialNumber}</strong> at ${details.location}.</p>
+${assignmentHtml}
+<p>Fire extinguisher <strong>${details.serialNumber}</strong> at ${details.location}.</p>
 <ul>
   <li><strong>Date:</strong> ${details.scheduledDate}</li>
   <li><strong>Time:</strong> ${details.scheduledTime}</li>
@@ -73,7 +79,7 @@ export function inspectionScheduledEmail(
 			inspectionUrl,
 			"View inspections",
 		),
-		text: `Inspection scheduled for ${details.serialNumber} on ${details.scheduledDate} at ${details.scheduledTime}. ${inspectionUrl}`,
+		text: `Hi ${firstName}. ${stripHtml(assignmentHtml)} ${details.serialNumber} on ${details.scheduledDate} at ${details.scheduledTime}. ${inspectionUrl}`,
 	};
 }
 
@@ -99,18 +105,21 @@ export function inspectionOverdueEmail(
 	firstName: string,
 	serialNumber: string,
 	scheduledDate: string,
+	assignmentHtml: string,
 	inspectionUrl: string,
+	isAssignedToRecipient: boolean,
 ) {
 	return {
-		subject: `Overdue inspection: ${serialNumber}`,
+		subject: `${isAssignedToRecipient ? "Your inspection is overdue" : "Overdue inspection"}: ${serialNumber}`,
 		html: layout(
 			"Inspection overdue",
 			`<p>Hi ${firstName},</p>
-<p>The inspection for <strong>${serialNumber}</strong> scheduled on ${scheduledDate} is now overdue.</p>`,
+${assignmentHtml}
+<p>The inspection for <strong>${serialNumber}</strong> scheduled on ${scheduledDate} is now <strong>overdue</strong>.</p>`,
 			inspectionUrl,
 			"View inspections",
 		),
-		text: `Overdue inspection for ${serialNumber} (${scheduledDate}). ${inspectionUrl}`,
+		text: `Overdue: ${serialNumber} (${scheduledDate}). ${stripHtml(assignmentHtml)} ${inspectionUrl}`,
 	};
 }
 
@@ -118,6 +127,7 @@ export function inspectionCancelledEmail(
 	firstName: string,
 	serialNumber: string,
 	reason: string | null,
+	assignmentHtml: string,
 	inspectionUrl: string,
 ) {
 	return {
@@ -125,12 +135,13 @@ export function inspectionCancelledEmail(
 		html: layout(
 			"Inspection cancelled",
 			`<p>Hi ${firstName},</p>
+${assignmentHtml}
 <p>The inspection for <strong>${serialNumber}</strong> has been cancelled.</p>
 ${reason ? `<p><strong>Reason:</strong> ${reason}</p>` : ""}`,
 			inspectionUrl,
 			"View inspections",
 		),
-		text: `Inspection cancelled for ${serialNumber}.${reason ? ` Reason: ${reason}` : ""} ${inspectionUrl}`,
+		text: `Inspection cancelled for ${serialNumber}. ${stripHtml(assignmentHtml)}${reason ? ` Reason: ${reason}` : ""} ${inspectionUrl}`,
 	};
 }
 
@@ -156,4 +167,8 @@ export function maintenanceLoggedEmail(
 
 export function appUrl(path: string) {
 	return `${config.appPublicUrl}${path.startsWith("/") ? path : `/${path}`}`;
+}
+
+function stripHtml(html: string): string {
+	return html.replace(/<[^>]+>/g, " ").replace(/\s+/g, " ").trim();
 }

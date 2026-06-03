@@ -39,7 +39,7 @@ export function serializeInspection(inspection: Inspection) {
 	return {
 		id: inspection.id,
 		extinguisherId: inspection.extinguisherId,
-		scheduledBy: inspection.scheduledBy,
+		scheduledById: inspection.scheduledBy,
 		assignedInspectorId: inspection.assignedInspectorId,
 		scheduledDate: inspection.scheduledDate,
 		scheduledTime: inspection.scheduledTime,
@@ -47,7 +47,7 @@ export function serializeInspection(inspection: Inspection) {
 		notes: inspection.notes,
 		cancelReason: inspection.cancelReason,
 		completedAt: inspection.completedAt?.toISOString() ?? null,
-		completedBy: inspection.completedBy,
+		completedById: inspection.completedBy,
 		createdAt: inspection.createdAt.toISOString(),
 		updatedAt: inspection.updatedAt.toISOString(),
 	};
@@ -57,7 +57,7 @@ export function serializeMaintenance(log: MaintenanceLog) {
 	return {
 		id: log.id,
 		extinguisherId: log.extinguisherId,
-		performedBy: log.performedBy,
+		performedById: log.performedBy,
 		actionTaken: log.actionTaken,
 		maintenanceDate: log.maintenanceDate,
 		issuesIdentified: log.issuesIdentified,
@@ -80,11 +80,29 @@ export function serializeNotification(notification: Notification) {
 	};
 }
 
+export type ReportPeriodCount = { period: string; count: number };
+
+export type ReportUpcomingExpiration = {
+	serialNumber: string;
+	location: string;
+	expiryDate: string;
+	status: string;
+	daysUntilExpiry: number;
+};
+
 export type ReportSummary = {
+	period?: { fromDate?: string; toDate?: string };
 	inventory: {
 		total: number;
 		byStatus: Record<string, number>;
 		byType: Record<string, number>;
+		summaries: {
+			daily: ReportPeriodCount[];
+			monthly: ReportPeriodCount[];
+			yearly: ReportPeriodCount[];
+			registeredToday: number;
+			registeredInRange: number;
+		};
 	};
 	inspections: {
 		pending: number;
@@ -96,10 +114,15 @@ export type ReportSummary = {
 		expired: number;
 		expiringWithin30Days: number;
 		needsMaintenance: number;
+		upcomingExpirations: ReportUpcomingExpiration[];
 	};
 	maintenance: {
 		totalLogs: number;
 		last30Days: number;
+		logsByMonth: ReportPeriodCount[];
+		recentActivities: number;
+		distinctExtinguishersServiced: number;
+		averageLogsPerExtinguisher: number;
 	};
 	generatedAt: string;
 };

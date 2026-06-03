@@ -72,3 +72,14 @@ export function formatUserName(
 ): string {
 	return `${firstName} ${lastName}`.trim();
 }
+
+export function formatUserBrief(
+	user?: { firstName?: string; lastName?: string } | null,
+	fallback = "Unknown",
+): string {
+	if (!user) {
+		return fallback;
+	}
+	const name = formatUserName(user.firstName ?? "", user.lastName ?? "");
+	return name || fallback;
+}

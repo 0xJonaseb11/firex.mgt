@@ -16,7 +16,10 @@ import {
 import { ApiError } from "@api/lib/errors";
 import { parseBody, parseParams, parseQuery } from "@api/lib/parse-body";
 import { notifyMaintenanceLogged } from "@api/lib/email/notify-maintenance";
-import { serializeMaintenance } from "@api/lib/serializers";
+import {
+	enrichMaintenanceLog,
+	enrichMaintenanceLogs,
+} from "@api/lib/record-enrichment";
 import {
 	asyncHandler,
 	requireAuth,
@@ -40,7 +43,7 @@ export function createMaintenanceRouter(): Router {
 				pagination.limit,
 			);
 			res.json({
-				items: result.items.map(serializeMaintenance),
+				items: await enrichMaintenanceLogs(result.items),
 				total: result.total,
 				page: pagination.page,
 				limit: pagination.limit,
@@ -60,7 +63,7 @@ export function createMaintenanceRouter(): Router {
 					message: "Maintenance log not found",
 				});
 			}
-			res.json({ maintenance: serializeMaintenance(log) });
+			res.json({ maintenance: await enrichMaintenanceLog(log) });
 		}),
 	);
 
@@ -97,7 +100,7 @@ export function createMaintenanceRouter(): Router {
 
 			await notifyMaintenanceLogged(log, extinguisher);
 
-			res.status(201).json({ maintenance: serializeMaintenance(log) });
+			res.status(201).json({ maintenance: await enrichMaintenanceLog(log) });
 		}),
 	);
 

@@ -147,7 +147,7 @@ export function ExtinguishersPage() {
 				/>
 			) : (
 				<div className="table-wrap">
-					<table className="data-table">
+					<table className="data-table data-table--compact">
 						<thead>
 							<tr>
 								<th scope="col">Serial</th>

@@ -7,3 +7,4 @@ export * from "./notifications.js";
 export * from "./password-reset.js";
 export * from "./email-verification.js";
 export * from "./reports.js";
+export * from "./dashboard.js";

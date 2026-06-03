@@ -6,7 +6,6 @@ import { sendViaEthereal, initEtherealTransport } from "@api/lib/email/ethereal"
 import {
 	initSmtpTransport,
 	isSmtpConfigured,
-	isSmtpReady,
 	sendViaSmtp,
 } from "@api/lib/email/smtp";
 import type { SendEmailInput } from "@api/lib/email/types";

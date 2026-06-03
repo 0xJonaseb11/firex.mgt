@@ -8,36 +8,55 @@ import {
 
 import { extinguishersApi } from "@web/api/extinguishers";
 import { inspectionsApi } from "@web/api/inspections";
+import { usersApi } from "@web/api/users";
 import { ApiError } from "@web/api/client";
-import type { Extinguisher, Inspection } from "@web/api/types";
+import type { Extinguisher, Inspection, User } from "@web/api/types";
 import { EmptyState } from "@web/components/EmptyState";
 import { ErrorAlert } from "@web/components/ErrorAlert";
 import { FormField } from "@web/components/FormField";
 import { LoadingState } from "@web/components/LoadingState";
 import { PageHeader } from "@web/components/PageHeader";
 import { StatusBadge } from "@web/components/StatusBadge";
+import {
+	InspectionActionModal,
+	type InspectionActionType,
+} from "@web/components/InspectionActionModal";
 import { JsonPreview } from "@web/components/JsonPreview";
 import { ViewModeToggle, type ViewMode } from "@web/components/ViewModeToggle";
-import { useConfirm } from "@web/contexts/ConfirmContext";
+import { useAuth } from "@web/contexts/AuthContext";
 import { useToast } from "@web/contexts/ToastContext";
-import { formatDate, formatUserName, inspectionStatusLabels } from "@web/lib/labels";
+import {
+	formatDate,
+	formatUserBrief,
+	inspectionStatusLabels,
+} from "@web/lib/labels";
 import { zodFieldErrors } from "@web/lib/form-errors";
 
 const scheduleDefaults = {
 	extinguisherId: "",
+	assignedInspectorId: "",
 	scheduledDate: "",
 	scheduledTime: "09:00",
 	notes: "",
 };
 
 export function InspectionsPage() {
-	const { confirm } = useConfirm();
+	const { user } = useAuth();
 	const toast = useToast();
+	const canAssignInspector =
+		user?.role === "admin" || user?.role === "inspector";
+	const pageDescription =
+		user?.role === "user"
+			? "Schedule inspections for extinguishers. Requests go to the inspector team — you cannot assign staff directly."
+			: "Schedule, assign, complete, and track extinguisher inspections.";
 
 	const [items, setItems] = useState<Inspection[]>([]);
 	const [rawPayload, setRawPayload] = useState<unknown>(null);
 	const [viewMode, setViewMode] = useState<ViewMode>("ui");
 	const [extinguishers, setExtinguishers] = useState<Extinguisher[]>([]);
+	const [inspectors, setInspectors] = useState<
+		Pick<User, "id" | "firstName" | "lastName" | "role">[]
+	>([]);
 	const [statusFilter, setStatusFilter] = useState("");
 	const [loading, setLoading] = useState(true);
 	const [error, setError] = useState<string | null>(null);
@@ -49,8 +68,11 @@ export function InspectionsPage() {
 	>({});
 	const [scheduling, setScheduling] = useState(false);
 
-	const [completeNotes, setCompleteNotes] = useState<Record<string, string>>({});
-	const [cancelReason, setCancelReason] = useState<Record<string, string>>({});
+	const [actionModal, setActionModal] = useState<{
+		type: InspectionActionType;
+		inspection: Inspection;
+	} | null>(null);
+	const [actionSubmitting, setActionSubmitting] = useState(false);
 
 	const load = useCallback(async () => {
 		setLoading(true);
@@ -59,13 +81,18 @@ export function InspectionsPage() {
 			const filters = inspectionFilterSchema.parse({
 				status: statusFilter || undefined,
 			});
-			const [inspectionsResponse, extinguishersResponse] = await Promise.all([
-				inspectionsApi.list(filters),
-				extinguishersApi.list({ limit: 100 }),
-			]);
+			const [inspectionsResponse, extinguishersResponse, inspectorsResponse] =
+				await Promise.all([
+					inspectionsApi.list({ ...filters, limit: 100 }),
+					extinguishersApi.list({ limit: 100 }),
+					canAssignInspector
+						? usersApi.listInspectors()
+						: Promise.resolve({ data: [] }),
+				]);
 			setItems(inspectionsResponse.data);
 			setRawPayload(inspectionsResponse.raw);
 			setExtinguishers(extinguishersResponse.data);
+			setInspectors(inspectorsResponse.data);
 		} catch (err) {
 			const message =
 				err instanceof ApiError
@@ -76,7 +103,7 @@ export function InspectionsPage() {
 		} finally {
 			setLoading(false);
 		}
-	}, [statusFilter, toast]);
+	}, [statusFilter, toast, canAssignInspector]);
 
 	useEffect(() => {
 		void load();
@@ -87,6 +114,7 @@ export function InspectionsPage() {
 		setScheduleErrors({});
 		const parsed = scheduleInspectionSchema.safeParse({
 			...scheduleForm,
+			assignedInspectorId: scheduleForm.assignedInspectorId || undefined,
 			notes: scheduleForm.notes || undefined,
 		});
 		if (!parsed.success) {
@@ -113,53 +141,54 @@ export function InspectionsPage() {
 		}
 	};
 
-	const handleComplete = async (inspection: Inspection) => {
-		const notes = completeNotes[inspection.id] ?? "";
-		const parsed = completeInspectionSchema.safeParse({
-			notes: notes || undefined,
-		});
-		if (!parsed.success) {
-			setError(parsed.error.issues[0]?.message ?? "Invalid input");
+	const handleActionSubmit = async (value: string) => {
+		if (!actionModal) {
 			return;
 		}
 
-		try {
-			await inspectionsApi.complete(inspection.id, parsed.data);
-			toast.success("Inspection marked complete.");
-			await load();
-		} catch (err) {
-			const message =
-				err instanceof ApiError
-					? err.message
-					: "Unable to complete inspection.";
-			setError(message);
-			toast.error(message);
-		}
-	};
+		const { type, inspection } = actionModal;
 
-	const handleCancel = async (inspection: Inspection) => {
-		const confirmed = await confirm({
-			title: "Cancel inspection",
-			message: "Cancel this scheduled inspection?",
-			confirmLabel: "Cancel inspection",
-			variant: "danger",
-		});
-		if (!confirmed) {
+		if (type === "complete") {
+			const parsed = completeInspectionSchema.safeParse({
+				notes: value || undefined,
+			});
+			if (!parsed.success) {
+				setError(parsed.error.issues[0]?.message ?? "Invalid input");
+				return;
+			}
+
+			setActionSubmitting(true);
+			try {
+				await inspectionsApi.complete(inspection.id, parsed.data);
+				toast.success("Inspection marked complete.");
+				setActionModal(null);
+				await load();
+			} catch (err) {
+				const message =
+					err instanceof ApiError
+						? err.message
+						: "Unable to complete inspection.";
+				setError(message);
+				toast.error(message);
+			} finally {
+				setActionSubmitting(false);
+			}
 			return;
 		}
 
-		const reason = cancelReason[inspection.id] ?? "";
 		const parsed = cancelInspectionSchema.safeParse({
-			reason: reason || undefined,
+			reason: value || undefined,
 		});
 		if (!parsed.success) {
 			setError(parsed.error.issues[0]?.message ?? "Invalid input");
 			return;
 		}
 
+		setActionSubmitting(true);
 		try {
 			await inspectionsApi.cancel(inspection.id, parsed.data);
 			toast.success("Inspection cancelled.");
+			setActionModal(null);
 			await load();
 		} catch (err) {
 			const message =
@@ -168,6 +197,8 @@ export function InspectionsPage() {
 					: "Unable to cancel inspection.";
 			setError(message);
 			toast.error(message);
+		} finally {
+			setActionSubmitting(false);
 		}
 	};
 
@@ -175,7 +206,7 @@ export function InspectionsPage() {
 		<div className="page">
 			<PageHeader
 				title="Inspections"
-				description="Schedule, complete, and track extinguisher inspections."
+				description={pageDescription}
 				actions={
 					<div className="page-header__action-group">
 						<ViewModeToggle mode={viewMode} onChange={setViewMode} />
@@ -246,6 +277,33 @@ export function InspectionsPage() {
 							required
 						/>
 					</div>
+					{canAssignInspector ? (
+						<FormField
+							as="select"
+							label="Assign inspector (optional)"
+							name="assignedInspectorId"
+							value={scheduleForm.assignedInspectorId}
+							onChange={(event) =>
+								setScheduleForm((current) => ({
+									...current,
+									assignedInspectorId: event.target.value,
+								}))
+							}
+							error={scheduleErrors.assignedInspectorId}
+						>
+							<option value="">Unassigned — visible to all inspectors</option>
+							{inspectors.map((inspector) => (
+								<option key={inspector.id} value={inspector.id}>
+									{formatUserBrief(inspector)}
+								</option>
+							))}
+						</FormField>
+					) : (
+						<p className="form-field__hint schedule-hint">
+							Your inspection will be placed in the inspector queue. Staff
+							assignment is managed by inspectors and administrators.
+						</p>
+					)}
 					<FormField
 						as="textarea"
 						label="Notes"
@@ -294,7 +352,7 @@ export function InspectionsPage() {
 				/>
 			) : (
 				<div className="table-wrap">
-					<table className="data-table">
+					<table className="data-table data-table--compact">
 						<thead>
 							<tr>
 								<th scope="col">Extinguisher</th>
@@ -317,12 +375,15 @@ export function InspectionsPage() {
 										{formatDate(item.scheduledDate)} at {item.scheduledTime}
 									</td>
 									<td>
-										{item.assignedInspector
-											? formatUserName(
-													item.assignedInspector.firstName,
-													item.assignedInspector.lastName,
-												)
-											: "Unassigned"}
+										{item.assignedInspector ? (
+											<span className="assignment-pill">
+												{formatUserBrief(item.assignedInspector)}
+											</span>
+										) : (
+											<span className="assignment-pill assignment-pill--muted">
+												Open queue
+											</span>
+										)}
 									</td>
 									<td>
 										<StatusBadge
@@ -334,48 +395,37 @@ export function InspectionsPage() {
 											}
 										/>
 									</td>
-									<td className="table-actions">
-										{item.status === "scheduled" || item.status === "overdue" ? (
-											<>
-												<FormField
-													label="Completion notes"
-													name={`complete-${item.id}`}
-													value={completeNotes[item.id] ?? ""}
-													onChange={(event) =>
-														setCompleteNotes((current) => ({
-															...current,
-															[item.id]: event.target.value,
-														}))
-													}
-												/>
+									<td>
+										{item.status === "scheduled" ||
+										item.status === "overdue" ? (
+											<div className="table-actions-inline">
 												<button
 													type="button"
 													className="btn btn-secondary btn-sm"
-													onClick={() => void handleComplete(item)}
+													onClick={() =>
+														setActionModal({
+															type: "complete",
+															inspection: item,
+														})
+													}
 												>
 													Complete
 												</button>
-												<FormField
-													label="Cancel reason"
-													name={`cancel-${item.id}`}
-													value={cancelReason[item.id] ?? ""}
-													onChange={(event) =>
-														setCancelReason((current) => ({
-															...current,
-															[item.id]: event.target.value,
-														}))
-													}
-												/>
 												<button
 													type="button"
 													className="btn btn-danger btn-sm"
-													onClick={() => void handleCancel(item)}
+													onClick={() =>
+														setActionModal({
+															type: "cancel",
+															inspection: item,
+														})
+													}
 												>
 													Cancel
 												</button>
-											</>
+											</div>
 										) : (
-											<span className="table-muted">No actions</span>
+											<span className="table-muted">—</span>
 										)}
 									</td>
 								</tr>
@@ -384,6 +434,14 @@ export function InspectionsPage() {
 					</table>
 				</div>
 			)}
+			<InspectionActionModal
+				open={actionModal !== null}
+				type={actionModal?.type ?? "complete"}
+				inspection={actionModal?.inspection ?? null}
+				submitting={actionSubmitting}
+				onClose={() => setActionModal(null)}
+				onSubmit={(value) => void handleActionSubmit(value)}
+			/>
 		</div>
 	);
 }
