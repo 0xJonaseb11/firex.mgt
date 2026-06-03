@@ -5,6 +5,7 @@ import { loginSchema } from "@repo/contracts";
 import { ErrorAlert } from "@web/components/ErrorAlert";
 import { FormField } from "@web/components/FormField";
 import { useAuth } from "@web/contexts/AuthContext";
+import { emailFromVerificationError, isEmailNotVerifiedError } from "@web/lib/auth-errors";
 import { zodFieldErrors } from "@web/lib/form-errors";
 
 export function LoginPage() {
@@ -21,10 +22,12 @@ export function LoginPage() {
 		password?: string;
 	}>({});
 	const [submitting, setSubmitting] = useState(false);
+	const [unverifiedEmail, setUnverifiedEmail] = useState<string | null>(null);
 
 	const handleSubmit = async (event: FormEvent) => {
 		event.preventDefault();
 		clearError();
+		setUnverifiedEmail(null);
 		setFieldErrors({});
 
 		const parsed = loginSchema.safeParse({ email, password });
@@ -37,8 +40,12 @@ export function LoginPage() {
 		try {
 			await login(parsed.data.email, parsed.data.password);
 			navigate(from, { replace: true });
-		} catch {
-			// Error handled in context
+		} catch (err) {
+			if (isEmailNotVerifiedError(err)) {
+				setUnverifiedEmail(
+					emailFromVerificationError(err) ?? parsed.data.email,
+				);
+			}
 		} finally {
 			setSubmitting(false);
 		}
@@ -73,6 +80,15 @@ export function LoginPage() {
 					{submitting ? "Signing in..." : "Sign in"}
 				</button>
 			</form>
+			{unverifiedEmail ? (
+				<p className="auth-card__links">
+					<Link
+						to={`/check-email?email=${encodeURIComponent(unverifiedEmail)}`}
+					>
+						Resend verification email
+					</Link>
+				</p>
+			) : null}
 			<p className="auth-card__links">
 				<Link to="/forgot-password">Forgot password?</Link>
 				<span aria-hidden="true"> | </span>

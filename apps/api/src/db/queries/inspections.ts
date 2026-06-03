@@ -4,10 +4,9 @@ import { db } from "@api/db";
 import type { Inspection } from "@api/db/schema";
 import { inspections } from "@api/db/schema";
 import { getExtinguisherById } from "@api/db/queries/extinguishers.js";
-import { createNotification } from "@api/db/queries/notifications.js";
+import { notifyInspectionOverdue } from "@api/lib/email/notify-inspection";
 import { listInspectors } from "@api/db/queries/users.js";
 import { OVERDUE_GRACE_HOURS } from "@api/lib/constants";
-import { generateId } from "@api/utils/generate-id";
 
 type InspectionFilter = {
 	status?: Inspection["status"];
@@ -135,31 +134,10 @@ export async function markOverdueInspections(): Promise<number> {
 
 	for (const inspection of result) {
 		const extinguisher = await getExtinguisherById(inspection.extinguisherId);
-		const message = `Inspection for ${extinguisher?.serialNumber ?? "extinguisher"} scheduled on ${inspection.scheduledDate} is overdue`;
-
-		if (inspection.assignedInspectorId) {
-			await createNotification({
-				id: await generateId(),
-				userId: inspection.assignedInspectorId,
-				title: "Inspection overdue",
-				message,
-				type: "inspection_overdue",
-				relatedEntityType: "inspection",
-				relatedEntityId: inspection.id,
-			});
-		} else {
-			for (const inspector of await listInspectors()) {
-				await createNotification({
-					id: await generateId(),
-					userId: inspector.id,
-					title: "Inspection overdue",
-					message,
-					type: "inspection_overdue",
-					relatedEntityType: "inspection",
-					relatedEntityId: inspection.id,
-				});
-			}
-		}
+		const inspectorIds = inspection.assignedInspectorId
+			? [inspection.assignedInspectorId]
+			: (await listInspectors()).map((inspector) => inspector.id);
+		await notifyInspectionOverdue(inspection, extinguisher, inspectorIds);
 	}
 
 	return result.length;

@@ -80,3 +80,28 @@ export const requireRole =
 		}
 		next();
 	};
+
+/**
+ * Require a verified email for mutating operations. Admins are exempt so
+ * deployments can recover accounts without mailbox access.
+ */
+export const requireVerifiedEmail = (
+	req: Request,
+	_res: Response,
+	next: NextFunction,
+) => {
+	if (!req.user) {
+		throw new ApiError({ code: "UNAUTHORIZED" });
+	}
+	if (req.user.role === "admin") {
+		return next();
+	}
+	if (!req.user.emailVerified) {
+		throw new ApiError({
+			code: "FORBIDDEN",
+			message: "Verify your email address to perform this action",
+			details: { code: "EMAIL_NOT_VERIFIED", email: req.user.email },
+		});
+	}
+	next();
+};

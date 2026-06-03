@@ -58,11 +58,24 @@ export const users = pgTable("users", {
 	email: text("email").notNull().unique(),
 	password: text("password").notNull(),
 	role: userRoleEnum("role").notNull().default("user"),
+	emailVerified: boolean("email_verified").notNull().default(false),
 	refreshTokenVersion: integer("refresh_token_version").notNull().default(1),
 	createdAt: timestamp("created_at", { withTimezone: true })
 		.notNull()
 		.defaultNow(),
 	updatedAt: timestamp("updated_at", { withTimezone: true })
+		.notNull()
+		.defaultNow(),
+});
+
+export const emailVerificationTokens = pgTable("email_verification_tokens", {
+	id: text("id").primaryKey(),
+	userId: text("user_id")
+		.notNull()
+		.references(() => users.id, { onDelete: "cascade" }),
+	tokenHash: text("token_hash").notNull(),
+	expiresAt: timestamp("expires_at", { withTimezone: true }).notNull(),
+	createdAt: timestamp("created_at", { withTimezone: true })
 		.notNull()
 		.defaultNow(),
 });

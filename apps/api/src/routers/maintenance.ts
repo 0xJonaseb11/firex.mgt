@@ -8,7 +8,6 @@ import {
 
 import {
 	createMaintenanceLog,
-	createNotification,
 	getExtinguisherById,
 	getMaintenanceLogById,
 	listMaintenanceLogs,
@@ -16,11 +15,13 @@ import {
 } from "@api/db/queries";
 import { ApiError } from "@api/lib/errors";
 import { parseBody, parseParams, parseQuery } from "@api/lib/parse-body";
+import { notifyMaintenanceLogged } from "@api/lib/email/notify-maintenance";
 import { serializeMaintenance } from "@api/lib/serializers";
 import {
 	asyncHandler,
 	requireAuth,
 	requireRole,
+	requireVerifiedEmail,
 } from "@api/middlewares";
 import { generateId } from "@api/utils/generate-id";
 
@@ -66,6 +67,7 @@ export function createMaintenanceRouter(): Router {
 	router.post(
 		"/",
 		requireAuth,
+		requireVerifiedEmail,
 		requireRole("inspector", "admin"),
 		asyncHandler(async (req, res) => {
 			const body = parseBody(createMaintenanceSchema, req.body);
@@ -93,15 +95,7 @@ export function createMaintenanceRouter(): Router {
 				});
 			}
 
-			await createNotification({
-				id: await generateId(),
-				userId: extinguisher.createdBy,
-				title: "Maintenance logged",
-				message: `Maintenance was logged for ${extinguisher.serialNumber}`,
-				type: "maintenance_logged",
-				relatedEntityType: "maintenance",
-				relatedEntityId: log.id,
-			});
+			await notifyMaintenanceLogged(log, extinguisher);
 
 			res.status(201).json({ maintenance: serializeMaintenance(log) });
 		}),

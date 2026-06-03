@@ -10,7 +10,6 @@ import {
 
 import {
 	createInspection,
-	createNotification,
 	getExtinguisherById,
 	getInspectionById,
 	getUserById,
@@ -18,6 +17,11 @@ import {
 	listInspections,
 	updateInspection,
 } from "@api/db/queries";
+import {
+	notifyInspectionCancelled,
+	notifyInspectionCompleted,
+	notifyInspectionScheduled,
+} from "@api/lib/email/notify-inspection";
 import { ApiError } from "@api/lib/errors";
 import { parseBody, parseParams, parseQuery } from "@api/lib/parse-body";
 import { serializeInspection } from "@api/lib/serializers";
@@ -25,40 +29,17 @@ import {
 	asyncHandler,
 	requireAuth,
 	requireRole,
+	requireVerifiedEmail,
 } from "@api/middlewares";
 import { generateId } from "@api/utils/generate-id";
 
-async function notifyInspectors(
-	title: string,
-	message: string,
-	type: "inspection_scheduled" | "inspection_overdue" | "inspection_completed",
-	relatedEntityId: string,
+async function inspectorRecipientIds(
 	assignedInspectorId?: string | null,
-) {
+): Promise<string[]> {
 	if (assignedInspectorId) {
-		await createNotification({
-			id: await generateId(),
-			userId: assignedInspectorId,
-			title,
-			message,
-			type,
-			relatedEntityType: "inspection",
-			relatedEntityId,
-		});
-		return;
+		return [assignedInspectorId];
 	}
-
-	for (const inspector of await listInspectors()) {
-		await createNotification({
-			id: await generateId(),
-			userId: inspector.id,
-			title,
-			message,
-			type,
-			relatedEntityType: "inspection",
-			relatedEntityId,
-		});
-	}
+	return (await listInspectors()).map((inspector) => inspector.id);
 }
 
 export function createInspectionsRouter(): Router {
@@ -108,6 +89,7 @@ export function createInspectionsRouter(): Router {
 	router.post(
 		"/",
 		requireAuth,
+		requireVerifiedEmail,
 		asyncHandler(async (req, res) => {
 			const body = parseBody(scheduleInspectionSchema, req.body);
 			const extinguisher = await getExtinguisherById(body.extinguisherId);
@@ -142,13 +124,8 @@ export function createInspectionsRouter(): Router {
 				status: "scheduled",
 			});
 
-			await notifyInspectors(
-				"Inspection scheduled",
-				`Inspection scheduled for ${extinguisher.serialNumber} on ${body.scheduledDate} at ${body.scheduledTime}`,
-				"inspection_scheduled",
-				inspection.id,
-				body.assignedInspectorId,
-			);
+			const inspectorIds = await inspectorRecipientIds(body.assignedInspectorId);
+			await notifyInspectionScheduled(inspection, extinguisher, inspectorIds);
 
 			res.status(201).json({ inspection: serializeInspection(inspection) });
 		}),
@@ -157,6 +134,7 @@ export function createInspectionsRouter(): Router {
 	router.post(
 		"/:id/complete",
 		requireAuth,
+		requireVerifiedEmail,
 		requireRole("inspector", "admin"),
 		asyncHandler(async (req, res) => {
 			const { id } = parseParams(idParamSchema, req.params);
@@ -186,15 +164,7 @@ export function createInspectionsRouter(): Router {
 				const extinguisher = await getExtinguisherById(
 					inspection.extinguisherId,
 				);
-				await createNotification({
-					id: await generateId(),
-					userId: inspection.scheduledBy,
-					title: "Inspection completed",
-					message: `Inspection for ${extinguisher?.serialNumber ?? "extinguisher"} was completed`,
-					type: "inspection_completed",
-					relatedEntityType: "inspection",
-					relatedEntityId: inspection.id,
-				});
+				await notifyInspectionCompleted(inspection, extinguisher);
 			}
 
 			res.json({
@@ -206,6 +176,7 @@ export function createInspectionsRouter(): Router {
 	router.post(
 		"/:id/cancel",
 		requireAuth,
+		requireVerifiedEmail,
 		asyncHandler(async (req, res) => {
 			const { id } = parseParams(idParamSchema, req.params);
 			const body = parseBody(cancelInspectionSchema, req.body);
@@ -235,6 +206,21 @@ export function createInspectionsRouter(): Router {
 				status: "cancelled",
 				cancelReason: body.reason ?? null,
 			});
+
+			if (inspection) {
+				const extinguisher = await getExtinguisherById(
+					inspection.extinguisherId,
+				);
+				const recipients = new Set<string>([inspection.scheduledBy]);
+				if (inspection.assignedInspectorId) {
+					recipients.add(inspection.assignedInspectorId);
+				}
+				await notifyInspectionCancelled(
+					inspection,
+					extinguisher,
+					[...recipients],
+				);
+			}
 
 			res.json({
 				inspection: inspection ? serializeInspection(inspection) : null,

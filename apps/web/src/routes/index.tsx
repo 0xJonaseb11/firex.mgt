@@ -12,7 +12,9 @@ import { DashboardPage } from "@web/pages/DashboardPage";
 import { ExtinguisherDetailPage } from "@web/pages/ExtinguisherDetailPage";
 import { ExtinguisherFormPage } from "@web/pages/ExtinguisherFormPage";
 import { ExtinguishersPage } from "@web/pages/ExtinguishersPage";
+import { CheckEmailPage } from "@web/pages/CheckEmailPage";
 import { ForgotPasswordPage } from "@web/pages/ForgotPasswordPage";
+import { VerifyEmailPage } from "@web/pages/VerifyEmailPage";
 import { InspectionsPage } from "@web/pages/InspectionsPage";
 import { LoginPage } from "@web/pages/LoginPage";
 import { MaintenancePage } from "@web/pages/MaintenancePage";
@@ -31,6 +33,8 @@ export const AppRoutes = () => (
 						<Route path="/login" element={<LoginPage />} />
 						<Route path="/register" element={<RegisterPage />} />
 						<Route path="/forgot-password" element={<ForgotPasswordPage />} />
+						<Route path="/check-email" element={<CheckEmailPage />} />
+						<Route path="/verify-email" element={<VerifyEmailPage />} />
 					</Route>
 					<Route element={<ProtectedRoute />}>
 						<Route element={<AppLayout />}>

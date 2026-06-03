@@ -3,6 +3,7 @@ import { NavLink, Outlet, useNavigate } from "react-router-dom";
 import type { UserRole } from "@repo/contracts";
 
 import { ConfirmDialog } from "@web/components/ConfirmDialog";
+import { EmailVerificationBanner } from "@web/components/EmailVerificationBanner";
 import { useAuth } from "@web/contexts/AuthContext";
 import { useConfirm } from "@web/contexts/ConfirmContext";
 import { formatUserName, roleLabels } from "@web/lib/labels";
@@ -110,6 +111,7 @@ export function AppLayout() {
 				</div>
 			</aside>
 			<main className="main-content">
+				<EmailVerificationBanner />
 				<Outlet />
 			</main>
 			<ConfirmDialog />

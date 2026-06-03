@@ -29,6 +29,13 @@
       "when": 1780461000000,
       "tag": "0003_extinguisher_size_values",
       "breakpoints": true
+    },
+    {
+      "idx": 4,
+      "version": "7",
+      "when": 1780462000000,
+      "tag": "0004_email_verification",
+      "breakpoints": true
     }
   ]
 }

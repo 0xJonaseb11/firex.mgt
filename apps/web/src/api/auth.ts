@@ -3,8 +3,10 @@ import type {
 	ForgotPasswordInput,
 	LoginInput,
 	RegisterInput,
+	ResendVerificationInput,
 	ResetPasswordInput,
 	UpdateProfileInput,
+	VerifyEmailInput,
 } from "@repo/contracts";
 
 import { apiRequest } from "@web/api/client";
@@ -23,10 +25,33 @@ export const authApi = {
 	},
 
 	register(input: RegisterInput) {
-		return apiRequest<AuthResponse>("/auth/register", {
-			method: "POST",
-			body: JSON.stringify(input),
-		});
+		return apiRequest<{ success: boolean; message: string; email: string }>(
+			"/auth/register",
+			{
+				method: "POST",
+				body: JSON.stringify(input),
+			},
+		);
+	},
+
+	verifyEmail(input: VerifyEmailInput) {
+		return apiRequest<{ success: boolean; message: string; user: User }>(
+			"/auth/verify-email",
+			{
+				method: "POST",
+				body: JSON.stringify(input),
+			},
+		);
+	},
+
+	resendVerification(input: ResendVerificationInput) {
+		return apiRequest<{ success: boolean; message: string }>(
+			"/auth/resend-verification",
+			{
+				method: "POST",
+				body: JSON.stringify(input),
+			},
+		);
 	},
 
 	logout() {
@@ -46,7 +71,9 @@ export const authApi = {
 	},
 
 	updateProfile(input: UpdateProfileInput) {
-		return apiRequest<AuthResponse>("/auth/me", {
+		return apiRequest<
+			AuthResponse & { requiresVerification?: boolean; message?: string }
+		>("/auth/me", {
 			method: "PATCH",
 			body: JSON.stringify(input),
 		});

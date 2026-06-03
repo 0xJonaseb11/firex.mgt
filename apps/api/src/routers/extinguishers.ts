@@ -23,6 +23,7 @@ import {
 	asyncHandler,
 	requireAuth,
 	requireRole,
+	requireVerifiedEmail,
 } from "@api/middlewares";
 import { generateId } from "@api/utils/generate-id";
 
@@ -69,6 +70,7 @@ export function createExtinguishersRouter(): Router {
 	router.post(
 		"/",
 		requireAuth,
+		requireVerifiedEmail,
 		requireRole("admin", "inspector"),
 		asyncHandler(async (req, res) => {
 			const body = parseBody(createExtinguisherSchema, req.body);
@@ -98,6 +100,7 @@ export function createExtinguishersRouter(): Router {
 	router.patch(
 		"/:id",
 		requireAuth,
+		requireVerifiedEmail,
 		requireRole("admin", "inspector"),
 		asyncHandler(async (req, res) => {
 			const { id } = parseParams(idParamSchema, req.params);
@@ -128,6 +131,7 @@ export function createExtinguishersRouter(): Router {
 	router.delete(
 		"/:id",
 		requireAuth,
+		requireVerifiedEmail,
 		requireRole("admin"),
 		asyncHandler(async (req, res) => {
 			const { id } = parseParams(idParamSchema, req.params);

@@ -38,13 +38,16 @@ export function RegisterPage() {
 
 		setSubmitting(true);
 		try {
-			await register(
+			const registeredEmail = await register(
 				parsed.data.firstName,
 				parsed.data.lastName,
 				parsed.data.email,
 				parsed.data.password,
 			);
-			navigate("/dashboard", { replace: true });
+			navigate(
+				`/check-email?email=${encodeURIComponent(registeredEmail)}`,
+				{ replace: true },
+			);
 		} catch {
 			// Error handled in context
 		} finally {

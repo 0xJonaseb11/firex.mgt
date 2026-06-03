@@ -12,6 +12,7 @@ export function serializeUser(user: User) {
 		firstName: user.firstName,
 		lastName: user.lastName,
 		email: user.email,
+		emailVerified: user.emailVerified,
 		role: user.role,
 		createdAt: user.createdAt.toISOString(),
 		updatedAt: user.updatedAt.toISOString(),

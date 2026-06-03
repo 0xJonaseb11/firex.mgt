@@ -4,17 +4,20 @@ import {
 	forgotPasswordSchema,
 	loginSchema,
 	registerSchema,
+	resendVerificationSchema,
 	resetPasswordSchema,
 	updateProfileSchema,
+	verifyEmailSchema,
 } from "@repo/contracts";
 
 import config from "@api/config";
 import {
-	createNotification,
 	createPasswordResetToken,
 	createUser,
+	deleteEmailVerificationToken,
 	deletePasswordResetToken,
 	deletePasswordResetTokensForUser,
+	findValidEmailVerificationToken,
 	findValidPasswordResetToken,
 	getUserByEmail,
 	getUserById,
@@ -22,7 +25,11 @@ import {
 	updateUser,
 } from "@api/db/queries";
 import { PASSWORD_RESET_TTL_MS } from "@api/lib/constants";
+import { sendEmail } from "@api/lib/email/client";
+import { sendAccountVerificationEmail } from "@api/lib/email/send-verification";
+import { appUrl, passwordResetEmail } from "@api/lib/email/templates";
 import { ApiError } from "@api/lib/errors";
+import { notifyUser } from "@api/lib/notify-user";
 import {
 	hashPassword,
 	hashResetTokenLookup,
@@ -67,10 +74,17 @@ export function createAuthRouter(): Router {
 				email: body.email,
 				password: await hashPassword(body.password),
 				role: "user",
+				emailVerified: false,
 			});
 
-			sendAuthCookies(res, user);
-			res.status(201).json({ user: sanitizeUser(user) });
+			await sendAccountVerificationEmail(user);
+
+			res.status(201).json({
+				success: true,
+				message:
+					"Account created. Check your email to verify your address before signing in.",
+				email: user.email,
+			});
 		}),
 	);
 
@@ -94,8 +108,64 @@ export function createAuthRouter(): Router {
 				});
 			}
 
+			if (!user.emailVerified && user.role !== "admin") {
+				throw new ApiError({
+					code: "FORBIDDEN",
+					message:
+						"Verify your email before signing in. Check your inbox or request a new link.",
+					details: { code: "EMAIL_NOT_VERIFIED", email: user.email },
+				});
+			}
+
 			sendAuthCookies(res, user);
 			res.json({ user: sanitizeUser(user) });
+		}),
+	);
+
+	router.post(
+		"/verify-email",
+		authRateLimiter,
+		asyncHandler(async (req, res) => {
+			const body = parseBody(verifyEmailSchema, req.body);
+			const record = await findValidEmailVerificationToken(body.token);
+			if (!record) {
+				throw new ApiError({
+					code: "BAD_REQUEST",
+					message: "Invalid or expired verification link",
+				});
+			}
+
+			const user = await updateUser(record.userId, { emailVerified: true });
+			if (!user) {
+				throw new ApiError({ code: "NOT_FOUND", message: "User not found" });
+			}
+
+			await deleteEmailVerificationToken(record.id);
+
+			res.json({
+				success: true,
+				message: "Email verified. You can sign in now.",
+				user: sanitizeUser(user),
+			});
+		}),
+	);
+
+	router.post(
+		"/resend-verification",
+		authRateLimiter,
+		asyncHandler(async (req, res) => {
+			const body = parseBody(resendVerificationSchema, req.body);
+			const user = await getUserByEmail(body.email);
+
+			if (user && !user.emailVerified) {
+				await sendAccountVerificationEmail(user);
+			}
+
+			res.json({
+				success: true,
+				message:
+					"If an unverified account exists for that email, a new confirmation link has been sent",
+			});
 		}),
 	);
 
@@ -111,6 +181,14 @@ export function createAuthRouter(): Router {
 				setTokenCookies(res, result.newTokens);
 			}
 			const user = result.user ?? (await getUserById(result.userId));
+			if (user && !user.emailVerified && user.role !== "admin") {
+				clearAuthCookies(res);
+				throw new ApiError({
+					code: "FORBIDDEN",
+					message: "Verify your email to continue",
+					details: { code: "EMAIL_NOT_VERIFIED", email: user.email },
+				});
+			}
 			res.json({ user: user ? sanitizeUser(user) : null });
 		}),
 	);
@@ -132,6 +210,10 @@ export function createAuthRouter(): Router {
 		requireAuth,
 		asyncHandler(async (req, res) => {
 			const updates = parseBody(updateProfileSchema, req.body);
+			const emailChanging =
+				updates.email !== undefined &&
+				updates.email.toLowerCase() !== req.user!.email.toLowerCase();
+
 			if (updates.email) {
 				const existing = await getUserByEmail(updates.email);
 				if (existing && existing.id !== req.userId) {
@@ -141,10 +223,28 @@ export function createAuthRouter(): Router {
 					});
 				}
 			}
-			const user = await updateUser(req.userId!, updates);
+
+			const user = await updateUser(req.userId!, {
+				...updates,
+				...(emailChanging ? { emailVerified: false } : {}),
+			});
 			if (!user) {
 				throw new ApiError({ code: "NOT_FOUND", message: "User not found" });
 			}
+
+			if (emailChanging) {
+				await revokeRefreshTokens(user.id);
+				clearAuthCookies(res);
+				await sendAccountVerificationEmail(user);
+				res.json({
+					user: sanitizeUser(user),
+					requiresVerification: true,
+					message:
+						"Email updated. Confirm your new address via the link we sent before signing in again.",
+				});
+				return;
+			}
+
 			res.json({ user: sanitizeUser(user) });
 		}),
 	);
@@ -193,18 +293,30 @@ export function createAuthRouter(): Router {
 					expiresAt: new Date(Date.now() + PASSWORD_RESET_TTL_MS),
 				});
 
-				await createNotification({
-					id: await generateId(),
+				const resetUrl = appUrl(
+					`/forgot-password?token=${encodeURIComponent(token)}`,
+				);
+				const content = passwordResetEmail(user.firstName, resetUrl);
+				await sendEmail({
+					to: user.email,
+					subject: content.subject,
+					html: content.html,
+					text: content.text,
+				});
+
+				await notifyUser({
 					userId: user.id,
 					title: "Password reset requested",
-					message: `Use this token to reset your password: ${token}`,
+					message:
+						"A password reset link was sent to your email if an account exists.",
 					type: "password_reset",
+					email: null,
 				});
 
 				if (config.isDevelopment) {
-					logger.info("Password reset token generated", {
+					logger.info("Password reset link (dev)", {
 						email: user.email,
-						token,
+						resetUrl,
 					});
 				}
 			}

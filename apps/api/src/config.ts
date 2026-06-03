@@ -28,6 +28,9 @@ const configSchema = z
 		CORS_ORIGIN: z.string().default("http://localhost:5173"),
 		REFRESH_TOKEN_SECRET: z.string(),
 		ACCESS_TOKEN_SECRET: z.string(),
+		RESEND_API_KEY: z.string().optional(),
+		EMAIL_FROM: z.string().default("TZW Fire Safety <onboarding@resend.dev>"),
+		APP_PUBLIC_URL: z.string().url().default("http://localhost:5173"),
 	})
 	.superRefine((env, ctx) => {
 		const hasDatabaseUrl = Boolean(env.DATABASE_URL?.trim());
@@ -117,6 +120,9 @@ export const config = {
 	supabaseProjectRef: parsed.data.SUPABASE_PROJECT_REF,
 	refreshTokenSecret: parsed.data.REFRESH_TOKEN_SECRET,
 	accessTokenSecret: parsed.data.ACCESS_TOKEN_SECRET,
+	resendApiKey: parsed.data.RESEND_API_KEY?.trim() || undefined,
+	emailFrom: parsed.data.EMAIL_FROM,
+	appPublicUrl: parsed.data.APP_PUBLIC_URL.replace(/\/$/, ""),
 };
 
 export default config;

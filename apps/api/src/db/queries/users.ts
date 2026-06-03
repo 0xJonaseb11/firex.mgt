@@ -33,7 +33,10 @@ export async function getUserByEmail(email: string): Promise<User | undefined> {
 export async function updateUser(
 	id: string,
 	updates: Partial<
-		Pick<User, "firstName" | "lastName" | "email" | "password" | "role">
+		Pick<
+			User,
+			"firstName" | "lastName" | "email" | "password" | "role" | "emailVerified"
+		>
 	>,
 ): Promise<User | undefined> {
 	const [user] = await db

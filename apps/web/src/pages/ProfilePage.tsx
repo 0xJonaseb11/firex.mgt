@@ -1,4 +1,5 @@
 import { useState, type FormEvent } from "react";
+import { useNavigate } from "react-router-dom";
 import { changePasswordSchema, updateProfileSchema } from "@repo/contracts";
 
 import { authApi } from "@web/api/auth";
@@ -14,7 +15,8 @@ import { roleLabels } from "@web/lib/labels";
 import { zodFieldErrors } from "@web/lib/form-errors";
 
 export function ProfilePage() {
-	const { user, refreshUser } = useAuth();
+	const { user, refreshUser, logout } = useAuth();
+	const navigate = useNavigate();
 	const { confirm } = useConfirm();
 	const toast = useToast();
 
@@ -58,7 +60,19 @@ export function ProfilePage() {
 
 		setProfileSubmitting(true);
 		try {
-			await authApi.updateProfile(parsed.data);
+			const response = await authApi.updateProfile(parsed.data);
+			if (response.requiresVerification) {
+				await logout();
+				toast.info(
+					response.message ??
+						"Confirm your new email address before signing in again.",
+				);
+				navigate(
+					`/check-email?email=${encodeURIComponent(response.user.email)}`,
+					{ replace: true },
+				);
+				return;
+			}
 			await refreshUser();
 			setProfileMessage("Profile updated.");
 			toast.success("Profile updated.");
@@ -128,6 +142,11 @@ export function ProfilePage() {
 			<section className="panel profile-summary">
 				<p className="detail-label">Role</p>
 				<StatusBadge value={user.role} label={roleLabels[user.role]} />
+				<p className="detail-label">Email status</p>
+				<StatusBadge
+					value={user.emailVerified ? "active" : "needs_maintenance"}
+					label={user.emailVerified ? "Verified" : "Not verified"}
+				/>
 			</section>
 
 			<form className="panel form-stack form-max" onSubmit={handleProfileSubmit} noValidate>

@@ -42,6 +42,14 @@ export const resetPasswordSchema = z.object({
 	newPassword: passwordSchema,
 });
 
+export const resendVerificationSchema = z.object({
+	email: emailSchema,
+});
+
+export const verifyEmailSchema = z.object({
+	token: z.string().min(1, "Verification token is required"),
+});
+
 export const updateUserRoleSchema = z.object({
 	role: userRoleSchema,
 });
@@ -52,3 +60,5 @@ export type UpdateProfileInput = z.infer<typeof updateProfileSchema>;
 export type ChangePasswordInput = z.infer<typeof changePasswordSchema>;
 export type ForgotPasswordInput = z.infer<typeof forgotPasswordSchema>;
 export type ResetPasswordInput = z.infer<typeof resetPasswordSchema>;
+export type ResendVerificationInput = z.infer<typeof resendVerificationSchema>;
+export type VerifyEmailInput = z.infer<typeof verifyEmailSchema>;

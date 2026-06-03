@@ -25,7 +25,7 @@ interface AuthContextValue {
 		lastName: string,
 		email: string,
 		password: string,
-	) => Promise<void>;
+	) => Promise<string>;
 	logout: () => Promise<void>;
 	logoutAll: () => Promise<void>;
 	clearError: () => void;
@@ -42,6 +42,15 @@ export function AuthProvider({ children }: { children: ReactNode }) {
 	const refreshUser = useCallback(async () => {
 		try {
 			const response = await authApi.me();
+			if (
+				response.user &&
+				!response.user.emailVerified &&
+				response.user.role !== "admin"
+			) {
+				await authApi.logout();
+				setUser(null);
+				return;
+			}
 			setUser(response.user);
 		} catch (err) {
 			setUser(null);
@@ -106,9 +115,10 @@ export function AuthProvider({ children }: { children: ReactNode }) {
 					email,
 					password,
 				});
-				setUser(response.user);
-				toast.success("Account created. Welcome to TZW Fire Safety.");
+				toast.success(response.message);
+				return response.email;
 			} catch (err) {
+				setUser(null);
 				const message =
 					err instanceof ApiError
 						? err.message

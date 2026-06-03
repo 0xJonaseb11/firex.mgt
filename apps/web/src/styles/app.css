@@ -584,6 +584,23 @@ textarea {
 	font-weight: 600;
 }
 
+.auth-card__lead {
+	margin: 0 0 1rem;
+	color: #4b5563;
+	font-size: 0.9375rem;
+	line-height: 1.5;
+}
+
+.auth-card__success {
+	margin: 0 0 1rem;
+	padding: 0.75rem 1rem;
+	background: #ecfdf5;
+	border: 1px solid #a7f3d0;
+	border-radius: 0.375rem;
+	color: #065f46;
+	font-size: 0.875rem;
+}
+
 .auth-card__footer,
 .auth-card__links {
 	display: flex;
@@ -591,6 +608,25 @@ textarea {
 	gap: 0.75rem;
 	margin-top: 1rem;
 	font-size: 0.875rem;
+}
+
+.verify-banner {
+	display: flex;
+	flex-wrap: wrap;
+	align-items: center;
+	justify-content: space-between;
+	gap: 0.75rem;
+	margin-bottom: 1rem;
+	padding: 0.875rem 1rem;
+	background: #fffbeb;
+	border: 1px solid #fcd34d;
+	border-radius: 0.5rem;
+	color: #92400e;
+	font-size: 0.875rem;
+}
+
+.verify-banner__email {
+	font-weight: 600;
 }
 
 .tab-list {
