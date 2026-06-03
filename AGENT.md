@@ -309,10 +309,6 @@ npm run setup:git
 
 This sets repo-local `user.name`, `user.email`, and enables `.githooks/pre-commit` to block wrong authors.
 
-## After rewriting history
+## New clone / other machine
 
-If commit authors were corrected locally, update the remote with:
-
-```bash
-git push --force-with-lease origin main
-```
+Run `npm run setup:git` before your first commit so hooks and identity match this repo.
