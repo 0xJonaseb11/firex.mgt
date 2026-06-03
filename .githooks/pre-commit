@@ -1,0 +1,15 @@
+#!/bin/sh
+expected_name="0xJonaseb11"
+expected_email="sebejaz99@gmail.com"
+
+name=$(git config --get user.name)
+email=$(git config --get user.email)
+
+if [ "$name" != "$expected_name" ] || [ "$email" != "$expected_email" ]; then
+	echo "pre-commit: wrong git author for this repository." >&2
+	echo "  expected: $expected_name <$expected_email>" >&2
+	echo "  current:  ${name:-<unset>} <${email:-unset}>" >&2
+	echo "" >&2
+	echo "Fix: npm run setup:git" >&2
+	exit 1
+fi

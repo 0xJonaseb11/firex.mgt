@@ -1,0 +1,35 @@
+{
+	"name": "restful-template",
+	"version": "1.0.0",
+	"description": "React + TypeScript frontend with Express API monorepo",
+	"main": "index.js",
+	"private": true,
+	"workspaces": [
+		"apps/*",
+		"packages/*"
+	],
+	"scripts": {
+		"dev": "turbo dev",
+		"build": "turbo build",
+		"lint": "turbo lint",
+		"check-types": "turbo check-types",
+		"format": "biome format --write .",
+		"setup:git": "powershell -ExecutionPolicy Bypass -File scripts/setup-git-hooks.ps1"
+	},
+	"keywords": [],
+	"author": "0xJonaseb11 <sebejaz99@gmail.com>",
+	"license": "ISC",
+	"packageManager": "npm@10.9.2",
+	"devEngines": {
+		"packageManager": {
+			"name": "npm",
+			"version": ">=10.0.0",
+			"onFail": "download"
+		}
+	},
+	"type": "module",
+	"devDependencies": {
+		"@biomejs/biome": "^2.4.16",
+		"turbo": "^2.9.16"
+	}
+}
