@@ -22,6 +22,13 @@
       "when": 1780460000000,
       "tag": "0002_inspections_maintenance_notifications",
       "breakpoints": true
+    },
+    {
+      "idx": 3,
+      "version": "7",
+      "when": 1780461000000,
+      "tag": "0003_extinguisher_size_values",
+      "breakpoints": true
     }
   ]
 }

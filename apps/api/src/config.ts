@@ -1,12 +1,21 @@
 import dotenv from "dotenv";
 import { z } from "zod";
 
-dotenv.config({ debug: false });
+import { resolveDatabaseUrlFromEnv } from "@api/lib/database";
+
+dotenv.config();
 
 const configSchema = z
 	.object({
 		PORT: z.coerce.number().default(8080),
-		DATABASE_URL: z.string(),
+		DATABASE_URL: z.string().optional(),
+		DATABASE_URL_DIRECT: z.string().optional(),
+		SUPABASE_PROJECT_REF: z.string().optional(),
+		SUPABASE_DB_PASSWORD: z.string().optional(),
+		SUPABASE_POOLER_HOST: z.string().optional(),
+		SUPABASE_URL: z.string().url().optional(),
+		SUPABASE_ANON_KEY: z.string().optional(),
+		SUPABASE_SERVICE_ROLE_KEY: z.string().optional(),
 		NODE_ENV: z
 			.enum(["development", "production", "test"])
 			.default("development"),
@@ -16,16 +25,30 @@ const configSchema = z
 		COMMAND_TIMEOUT_MS: z.coerce.number().default(30000),
 		RATE_LIMIT_WINDOW_MS: z.coerce.number().default(60000),
 		RATE_LIMIT_MAX_REQUESTS: z.coerce.number().default(100),
-		CORS_ORIGIN: z.string().default("*"),
-
-		// authentication
+		CORS_ORIGIN: z.string().default("http://localhost:5173"),
 		REFRESH_TOKEN_SECRET: z.string(),
 		ACCESS_TOKEN_SECRET: z.string(),
 	})
 	.superRefine((env, ctx) => {
-		// Enforce production-grade settings only when actually running in prod, so
-		// local development stays friction-free.
-		if (env.NODE_ENV !== "production") return;
+		const hasDatabaseUrl = Boolean(env.DATABASE_URL?.trim());
+		const hasSupabaseParts =
+			Boolean(env.SUPABASE_DB_PASSWORD?.trim()) &&
+			Boolean(env.SUPABASE_PROJECT_REF?.trim());
+
+		if (!hasDatabaseUrl && !hasSupabaseParts) {
+			const message = env.SUPABASE_PROJECT_REF?.trim()
+				? "SUPABASE_DB_PASSWORD is required (Supabase Dashboard → Project Settings → Database)."
+				: "Set DATABASE_URL for local Postgres, or SUPABASE_PROJECT_REF + SUPABASE_DB_PASSWORD for Supabase.";
+			ctx.addIssue({
+				code: "custom",
+				path: ["SUPABASE_DB_PASSWORD"],
+				message,
+			});
+		}
+
+		if (env.NODE_ENV !== "production") {
+			return;
+		}
 
 		for (const key of ["REFRESH_TOKEN_SECRET", "ACCESS_TOKEN_SECRET"] as const) {
 			if (env[key].length < 32) {
@@ -70,9 +93,14 @@ if (!parsed.success) {
 	process.exit(1);
 }
 
+const databaseUrl = resolveDatabaseUrlFromEnv(parsed.data);
+const migrationDatabaseUrl =
+	parsed.data.DATABASE_URL_DIRECT?.trim() || databaseUrl;
+
 export const config = {
 	port: parsed.data.PORT,
-	databaseUrl: parsed.data.DATABASE_URL,
+	databaseUrl,
+	migrationDatabaseUrl,
 	nodeEnv: parsed.data.NODE_ENV,
 	logLevel: parsed.data.LOG_LEVEL,
 	maxFileSizeMB: parsed.data.MAX_FILE_SIZE_MB,
@@ -83,8 +111,10 @@ export const config = {
 	isDevelopment: parsed.data.NODE_ENV === "development",
 	isProduction: parsed.data.NODE_ENV === "production",
 	domain: parsed.data.DOMAIN,
-
-	// authentication
+	supabaseUrl: parsed.data.SUPABASE_URL,
+	supabaseAnonKey: parsed.data.SUPABASE_ANON_KEY,
+	supabaseServiceRoleKey: parsed.data.SUPABASE_SERVICE_ROLE_KEY,
+	supabaseProjectRef: parsed.data.SUPABASE_PROJECT_REF,
 	refreshTokenSecret: parsed.data.REFRESH_TOKEN_SECRET,
 	accessTokenSecret: parsed.data.ACCESS_TOKEN_SECRET,
 };

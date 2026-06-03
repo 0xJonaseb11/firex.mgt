@@ -14,7 +14,10 @@
 		"lint": "turbo lint",
 		"check-types": "turbo check-types",
 		"format": "biome format --write .",
-		"setup:git": "powershell -ExecutionPolicy Bypass -File scripts/setup-git-hooks.ps1"
+		"setup:git": "powershell -ExecutionPolicy Bypass -File scripts/setup-git-hooks.ps1",
+		"env:setup": "node scripts/setup-api-env.mjs",
+		"db:migrate": "npm run db:migrate --workspace=api",
+		"db:test": "npm run db:test --workspace=api"
 	},
 	"keywords": [],
 	"author": "0xJonaseb11 <sebejaz99@gmail.com>",

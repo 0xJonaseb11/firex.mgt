@@ -1,5 +1,5 @@
 CREATE TYPE "public"."extinguisher_type" AS ENUM('water', 'co2', 'foam', 'dry_chemical');--> statement-breakpoint
-CREATE TYPE "public"."extinguisher_size" AS ENUM('1.5lb', '5lb', '9lb', '12lb');--> statement-breakpoint
+CREATE TYPE "public"."extinguisher_size" AS ENUM('2.5 lbs.', '5 lbs.', '9 lbs.', '12 lbs.');--> statement-breakpoint
 CREATE TYPE "public"."extinguisher_status" AS ENUM('active', 'expired', 'decommissioned', 'needs_maintenance');--> statement-breakpoint
 CREATE TABLE "fire_extinguishers" (
 	"id" text PRIMARY KEY NOT NULL,

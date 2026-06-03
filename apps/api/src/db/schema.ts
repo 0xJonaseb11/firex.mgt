@@ -22,10 +22,10 @@ export const extinguisherTypeEnum = pgEnum("extinguisher_type", [
 ]);
 
 export const extinguisherSizeEnum = pgEnum("extinguisher_size", [
-	"1.5lb",
-	"5lb",
-	"9lb",
-	"12lb",
+	"2.5 lbs.",
+	"5 lbs.",
+	"9 lbs.",
+	"12 lbs.",
 ]);
 
 export const extinguisherStatusEnum = pgEnum("extinguisher_status", [

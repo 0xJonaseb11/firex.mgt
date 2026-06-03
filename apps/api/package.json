@@ -10,7 +10,8 @@
 		"lint": "eslint 'src/**/*.ts'",
 		"check-types": "tsc --noEmit",
 		"db:generate": "drizzle-kit generate",
-		"db:migrate": "drizzle-kit migrate"
+		"db:migrate": "drizzle-kit migrate",
+		"db:test": "tsx src/scripts/test-db-connection.ts"
 	},
 	"keywords": [],
 	"author": "",

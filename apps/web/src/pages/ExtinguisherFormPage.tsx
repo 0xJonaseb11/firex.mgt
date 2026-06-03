@@ -25,7 +25,7 @@ const defaultValues = {
 	serialNumber: "",
 	location: "",
 	type: "water" as const,
-	size: "5lb" as const,
+	size: "5 lbs." as const,
 	installationDate: "",
 	expiryDate: "",
 	status: "active" as const,

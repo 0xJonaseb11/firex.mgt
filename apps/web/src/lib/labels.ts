@@ -20,10 +20,10 @@ export const extinguisherTypeLabels: Record<ExtinguisherType, string> = {
 };
 
 export const extinguisherSizeLabels: Record<ExtinguisherSize, string> = {
-	"1.5lb": "1.5 lb",
-	"5lb": "5 lb",
-	"9lb": "9 lb",
-	"12lb": "12 lb",
+	"2.5 lbs.": "2.5 lbs.",
+	"5 lbs.": "5 lbs.",
+	"9 lbs.": "9 lbs.",
+	"12 lbs.": "12 lbs.",
 };
 
 export const extinguisherStatusLabels: Record<ExtinguisherStatus, string> = {

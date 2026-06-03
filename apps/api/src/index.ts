@@ -5,6 +5,11 @@ import express from "express";
 import helmet from "helmet";
 
 import config from "@api/config";
+import { sql } from "@api/db";
+import {
+	detectDatabaseProvider,
+	verifyDatabaseConnection,
+} from "@api/lib/database";
 import {
 	errorHandler,
 	globalRateLimiter,
@@ -23,6 +28,10 @@ import logger from "@api/utils/logger";
 
 async function startServer() {
 	try {
+		const databaseProvider = detectDatabaseProvider(config.databaseUrl);
+		await verifyDatabaseConnection(sql);
+		logger.info("Database connected", { provider: databaseProvider });
+
 		const app = express();
 
 		app.use(createDocsRouter());

@@ -7,7 +7,12 @@ export const extinguisherTypeSchema = z.enum([
 	"dry_chemical",
 ]);
 
-export const extinguisherSizeSchema = z.enum(["1.5lb", "5lb", "9lb", "12lb"]);
+export const extinguisherSizeSchema = z.enum([
+	"2.5 lbs.",
+	"5 lbs.",
+	"9 lbs.",
+	"12 lbs.",
+]);
 
 export const extinguisherStatusSchema = z.enum([
 	"active",
@@ -20,6 +25,22 @@ const dateStringSchema = z
 	.string()
 	.regex(/^\d{4}-\d{2}-\d{2}$/, "Date must be in YYYY-MM-DD format");
 
+const expiryAfterInstallation = (
+	data: { installationDate?: string; expiryDate?: string },
+	ctx: z.RefinementCtx,
+) => {
+	if (!data.installationDate || !data.expiryDate) {
+		return;
+	}
+	if (data.expiryDate < data.installationDate) {
+		ctx.addIssue({
+			code: "custom",
+			message: "Expiry date must be on or after installation date",
+			path: ["expiryDate"],
+		});
+	}
+};
+
 export const createExtinguisherSchema = z
 	.object({
 		serialNumber: z.string().min(1, "Serial number is required").max(100).trim(),
@@ -30,16 +51,22 @@ export const createExtinguisherSchema = z
 		expiryDate: dateStringSchema,
 		status: extinguisherStatusSchema.default("active"),
 	})
-	.refine((data) => data.expiryDate >= data.installationDate, {
-		message: "Expiry date must be on or after installation date",
-		path: ["expiryDate"],
-	});
+	.superRefine(expiryAfterInstallation);
 
-export const updateExtinguisherSchema = createExtinguisherSchema
-	.partial()
+export const updateExtinguisherSchema = z
+	.object({
+		serialNumber: z.string().min(1).max(100).trim().optional(),
+		location: z.string().min(1).max(255).trim().optional(),
+		type: extinguisherTypeSchema.optional(),
+		size: extinguisherSizeSchema.optional(),
+		installationDate: dateStringSchema.optional(),
+		expiryDate: dateStringSchema.optional(),
+		status: extinguisherStatusSchema.optional(),
+	})
 	.refine((data) => Object.keys(data).length > 0, {
 		message: "At least one field must be provided",
-	});
+	})
+	.superRefine(expiryAfterInstallation);
 
 export const extinguisherFilterSchema = z.object({
 	status: extinguisherStatusSchema.optional(),
