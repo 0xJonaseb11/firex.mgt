@@ -1,0 +1,83 @@
+import { useState, type FormEvent } from "react";
+import { Link, useLocation, useNavigate } from "react-router-dom";
+import { loginSchema } from "@repo/contracts";
+
+import { ErrorAlert } from "@web/components/ErrorAlert";
+import { FormField } from "@web/components/FormField";
+import { useAuth } from "@web/contexts/AuthContext";
+import { zodFieldErrors } from "@web/lib/form-errors";
+
+export function LoginPage() {
+	const { login, error, clearError } = useAuth();
+	const navigate = useNavigate();
+	const location = useLocation();
+	const from =
+		(location.state as { from?: string } | null)?.from ?? "/dashboard";
+
+	const [email, setEmail] = useState("");
+	const [password, setPassword] = useState("");
+	const [fieldErrors, setFieldErrors] = useState<{
+		email?: string;
+		password?: string;
+	}>({});
+	const [submitting, setSubmitting] = useState(false);
+
+	const handleSubmit = async (event: FormEvent) => {
+		event.preventDefault();
+		clearError();
+		setFieldErrors({});
+
+		const parsed = loginSchema.safeParse({ email, password });
+		if (!parsed.success) {
+			setFieldErrors(zodFieldErrors(parsed.error));
+			return;
+		}
+
+		setSubmitting(true);
+		try {
+			await login(parsed.data.email, parsed.data.password);
+			navigate(from, { replace: true });
+		} catch {
+			// Error handled in context
+		} finally {
+			setSubmitting(false);
+		}
+	};
+
+	return (
+		<section>
+			<h2 className="auth-card__section-title">Sign in</h2>
+			{error ? <ErrorAlert message={error} onDismiss={clearError} /> : null}
+			<form className="form-stack" onSubmit={handleSubmit} noValidate>
+				<FormField
+					label="Email"
+					type="email"
+					name="email"
+					autoComplete="email"
+					value={email}
+					onChange={(event) => setEmail(event.target.value)}
+					error={fieldErrors.email}
+					required
+				/>
+				<FormField
+					label="Password"
+					type="password"
+					name="password"
+					autoComplete="current-password"
+					value={password}
+					onChange={(event) => setPassword(event.target.value)}
+					error={fieldErrors.password}
+					required
+				/>
+				<button type="submit" className="btn btn-primary btn-block" disabled={submitting}>
+					{submitting ? "Signing in..." : "Sign in"}
+				</button>
+			</form>
+			<p className="auth-card__links">
+				<Link to="/forgot-password">Forgot password?</Link>
+				<span aria-hidden="true"> | </span>
+				<Link to="/register">Create account</Link>
+			</p>
+		</section>
+	);
+}
