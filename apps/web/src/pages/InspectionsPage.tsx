@@ -16,7 +16,10 @@ import { FormField } from "@web/components/FormField";
 import { LoadingState } from "@web/components/LoadingState";
 import { PageHeader } from "@web/components/PageHeader";
 import { StatusBadge } from "@web/components/StatusBadge";
+import { JsonPreview } from "@web/components/JsonPreview";
+import { ViewModeToggle, type ViewMode } from "@web/components/ViewModeToggle";
 import { useConfirm } from "@web/contexts/ConfirmContext";
+import { useToast } from "@web/contexts/ToastContext";
 import { formatDate, formatUserName, inspectionStatusLabels } from "@web/lib/labels";
 import { zodFieldErrors } from "@web/lib/form-errors";
 
@@ -29,8 +32,11 @@ const scheduleDefaults = {
 
 export function InspectionsPage() {
 	const { confirm } = useConfirm();
+	const toast = useToast();
 
 	const [items, setItems] = useState<Inspection[]>([]);
+	const [rawPayload, setRawPayload] = useState<unknown>(null);
+	const [viewMode, setViewMode] = useState<ViewMode>("ui");
 	const [extinguishers, setExtinguishers] = useState<Extinguisher[]>([]);
 	const [statusFilter, setStatusFilter] = useState("");
 	const [loading, setLoading] = useState(true);
@@ -58,17 +64,19 @@ export function InspectionsPage() {
 				extinguishersApi.list({ limit: 100 }),
 			]);
 			setItems(inspectionsResponse.data);
+			setRawPayload(inspectionsResponse.raw);
 			setExtinguishers(extinguishersResponse.data);
 		} catch (err) {
-			setError(
+			const message =
 				err instanceof ApiError
 					? err.message
-					: "Unable to load inspections.",
-			);
+					: "Unable to load inspections.";
+			setError(message);
+			toast.error(message);
 		} finally {
 			setLoading(false);
 		}
-	}, [statusFilter]);
+	}, [statusFilter, toast]);
 
 	useEffect(() => {
 		void load();
@@ -89,15 +97,17 @@ export function InspectionsPage() {
 		setScheduling(true);
 		try {
 			await inspectionsApi.schedule(parsed.data);
+			toast.success("Inspection scheduled.");
 			setScheduleForm(scheduleDefaults);
 			setShowSchedule(false);
 			await load();
 		} catch (err) {
-			setError(
+			const message =
 				err instanceof ApiError
 					? err.message
-					: "Unable to schedule inspection.",
-			);
+					: "Unable to schedule inspection.";
+			setError(message);
+			toast.error(message);
 		} finally {
 			setScheduling(false);
 		}
@@ -115,13 +125,15 @@ export function InspectionsPage() {
 
 		try {
 			await inspectionsApi.complete(inspection.id, parsed.data);
+			toast.success("Inspection marked complete.");
 			await load();
 		} catch (err) {
-			setError(
+			const message =
 				err instanceof ApiError
 					? err.message
-					: "Unable to complete inspection.",
-			);
+					: "Unable to complete inspection.";
+			setError(message);
+			toast.error(message);
 		}
 	};
 
@@ -147,13 +159,15 @@ export function InspectionsPage() {
 
 		try {
 			await inspectionsApi.cancel(inspection.id, parsed.data);
+			toast.success("Inspection cancelled.");
 			await load();
 		} catch (err) {
-			setError(
+			const message =
 				err instanceof ApiError
 					? err.message
-					: "Unable to cancel inspection.",
-			);
+					: "Unable to cancel inspection.";
+			setError(message);
+			toast.error(message);
 		}
 	};
 
@@ -163,13 +177,16 @@ export function InspectionsPage() {
 				title="Inspections"
 				description="Schedule, complete, and track extinguisher inspections."
 				actions={
-					<button
-						type="button"
-						className="btn btn-primary"
-						onClick={() => setShowSchedule((value) => !value)}
-					>
-						{showSchedule ? "Close form" : "Schedule inspection"}
-					</button>
+					<div className="page-header__action-group">
+						<ViewModeToggle mode={viewMode} onChange={setViewMode} />
+						<button
+							type="button"
+							className="btn btn-primary"
+							onClick={() => setShowSchedule((value) => !value)}
+						>
+							{showSchedule ? "Close form" : "Schedule inspection"}
+						</button>
+					</div>
 				}
 			/>
 
@@ -268,6 +285,8 @@ export function InspectionsPage() {
 
 			{loading ? (
 				<LoadingState message="Loading inspections..." />
+			) : viewMode === "json" ? (
+				<JsonPreview data={rawPayload ?? { items }} />
 			) : items.length === 0 ? (
 				<EmptyState
 					title="No inspections found"

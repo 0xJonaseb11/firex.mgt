@@ -11,6 +11,7 @@ import {
 import { authApi } from "@web/api/auth";
 import { ApiError } from "@web/api/client";
 import type { User } from "@web/api/types";
+import { useToast } from "@web/contexts/ToastContext";
 
 interface AuthContextValue {
 	user: User | null;
@@ -33,6 +34,7 @@ interface AuthContextValue {
 const AuthContext = createContext<AuthContextValue | null>(null);
 
 export function AuthProvider({ children }: { children: ReactNode }) {
+	const toast = useToast();
 	const [user, setUser] = useState<User | null>(null);
 	const [loading, setLoading] = useState(true);
 	const [error, setError] = useState<string | null>(null);
@@ -77,15 +79,17 @@ export function AuthProvider({ children }: { children: ReactNode }) {
 		try {
 			const response = await authApi.login({ email, password });
 			setUser(response.user);
+			toast.success(`Welcome back, ${response.user.firstName}.`);
 		} catch (err) {
 			const message =
 				err instanceof ApiError
 					? err.message
 					: "Unable to sign in. Please try again.";
 			setError(message);
+			toast.error(message);
 			throw err;
 		}
-	}, []);
+	}, [toast]);
 
 	const register = useCallback(
 		async (
@@ -103,29 +107,33 @@ export function AuthProvider({ children }: { children: ReactNode }) {
 					password,
 				});
 				setUser(response.user);
+				toast.success("Account created. Welcome to TZW Fire Safety.");
 			} catch (err) {
 				const message =
 					err instanceof ApiError
 						? err.message
 						: "Unable to create account. Please try again.";
 				setError(message);
+				toast.error(message);
 				throw err;
 			}
 		},
-		[],
+		[toast],
 	);
 
 	const logout = useCallback(async () => {
 		setError(null);
 		await authApi.logout();
 		setUser(null);
-	}, []);
+		toast.info("Signed out successfully.");
+	}, [toast]);
 
 	const logoutAll = useCallback(async () => {
 		setError(null);
 		await authApi.logoutAll();
 		setUser(null);
-	}, []);
+		toast.info("Signed out on all devices.");
+	}, [toast]);
 
 	const clearError = useCallback(() => {
 		setError(null);

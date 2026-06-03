@@ -51,13 +51,16 @@ async function startServer() {
 		app.use(requestLogger);
 
 		app.use(createHealthRouter());
-		app.use("/auth", createAuthRouter());
-		app.use("/users", createUsersRouter());
-		app.use("/extinguishers", createExtinguishersRouter());
-		app.use("/inspections", createInspectionsRouter());
-		app.use("/maintenance", createMaintenanceRouter());
-		app.use("/notifications", createNotificationsRouter());
-		app.use("/reports", createReportsRouter());
+
+		const api = express.Router();
+		api.use("/auth", createAuthRouter());
+		api.use("/users", createUsersRouter());
+		api.use("/extinguishers", createExtinguishersRouter());
+		api.use("/inspections", createInspectionsRouter());
+		api.use("/maintenance", createMaintenanceRouter());
+		api.use("/notifications", createNotificationsRouter());
+		api.use("/reports", createReportsRouter());
+		app.use("/api", api);
 
 		app.use((req, res) => {
 			res.status(404).json({

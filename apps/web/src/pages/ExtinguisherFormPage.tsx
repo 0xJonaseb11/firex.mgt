@@ -19,6 +19,7 @@ import {
 	extinguisherStatusLabels,
 	extinguisherTypeLabels,
 } from "@web/lib/labels";
+import { useToast } from "@web/contexts/ToastContext";
 import { zodFieldErrors } from "@web/lib/form-errors";
 
 const defaultValues = {
@@ -35,6 +36,7 @@ export function ExtinguisherFormPage() {
 	const { id } = useParams<{ id: string }>();
 	const isEdit = Boolean(id);
 	const navigate = useNavigate();
+	const toast = useToast();
 
 	const [form, setForm] = useState(defaultValues);
 	const [fieldErrors, setFieldErrors] = useState<
@@ -110,19 +112,22 @@ export function ExtinguisherFormPage() {
 		try {
 			if (isEdit && id) {
 				await extinguishersApi.update(id, parsed.data);
+				toast.success("Extinguisher updated.");
 				navigate(`/extinguishers/${id}`);
 			} else {
 				const response = await extinguishersApi.create(
 					parsed.data as Parameters<typeof extinguishersApi.create>[0],
 				);
+				toast.success("Extinguisher registered.");
 				navigate(`/extinguishers/${response.data.id}`);
 			}
 		} catch (err) {
-			setError(
+			const message =
 				err instanceof ApiError
 					? err.message
-					: "Unable to save extinguisher.",
-			);
+					: "Unable to save extinguisher.";
+			setError(message);
+			toast.error(message);
 		} finally {
 			setSubmitting(false);
 		}

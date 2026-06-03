@@ -15,6 +15,7 @@ interface NavItem {
 
 const navItems: NavItem[] = [
 	{ to: "/dashboard", label: "Dashboard" },
+	{ to: "/notifications", label: "Notifications" },
 	{ to: "/extinguishers", label: "Extinguishers" },
 	{ to: "/inspections", label: "Inspections" },
 	{ to: "/maintenance", label: "Maintenance", roles: ["inspector", "admin"] },

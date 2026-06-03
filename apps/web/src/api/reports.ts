@@ -1,4 +1,5 @@
 import { apiRequest, buildQuery } from "@web/api/client";
+import { apiPath } from "@web/lib/api-path";
 import type { ReportSummary } from "@web/api/types";
 
 export interface ReportFilters {
@@ -16,7 +17,7 @@ export const reportsApi = {
 
 	export(format: "csv" | "pdf", filters: ReportFilters = {}) {
 		return fetch(
-			`/reports/export${buildQuery({ ...filters, format })}`,
+			apiPath(`/reports/export${buildQuery({ ...filters, format })}`),
 			{ credentials: "include" },
 		);
 	},

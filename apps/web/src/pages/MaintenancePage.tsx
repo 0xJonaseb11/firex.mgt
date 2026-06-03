@@ -9,7 +9,10 @@ import { EmptyState } from "@web/components/EmptyState";
 import { ErrorAlert } from "@web/components/ErrorAlert";
 import { FormField } from "@web/components/FormField";
 import { LoadingState } from "@web/components/LoadingState";
+import { JsonPreview } from "@web/components/JsonPreview";
 import { PageHeader } from "@web/components/PageHeader";
+import { ViewModeToggle, type ViewMode } from "@web/components/ViewModeToggle";
+import { useToast } from "@web/contexts/ToastContext";
 import { formatDate, formatUserName } from "@web/lib/labels";
 import { zodFieldErrors } from "@web/lib/form-errors";
 
@@ -22,7 +25,10 @@ const formDefaults = {
 };
 
 export function MaintenancePage() {
+	const toast = useToast();
 	const [items, setItems] = useState<MaintenanceRecord[]>([]);
+	const [rawPayload, setRawPayload] = useState<unknown>(null);
+	const [viewMode, setViewMode] = useState<ViewMode>("ui");
 	const [extinguishers, setExtinguishers] = useState<Extinguisher[]>([]);
 	const [form, setForm] = useState(formDefaults);
 	const [fieldErrors, setFieldErrors] = useState<
@@ -46,17 +52,19 @@ export function MaintenancePage() {
 				extinguishersApi.list({ limit: 100 }),
 			]);
 			setItems(maintenanceResponse.data);
+			setRawPayload(maintenanceResponse.raw);
 			setExtinguishers(extinguishersResponse.data);
 		} catch (err) {
-			setError(
+			const message =
 				err instanceof ApiError
 					? err.message
-					: "Unable to load maintenance records.",
-			);
+					: "Unable to load maintenance records.";
+			setError(message);
+			toast.error(message);
 		} finally {
 			setLoading(false);
 		}
-	}, [extinguisherFilter]);
+	}, [extinguisherFilter, toast]);
 
 	useEffect(() => {
 		void load();
@@ -78,15 +86,17 @@ export function MaintenancePage() {
 		setSubmitting(true);
 		try {
 			await maintenanceApi.create(parsed.data);
+			toast.success("Maintenance activity logged.");
 			setForm(formDefaults);
 			setShowForm(false);
 			await load();
 		} catch (err) {
-			setError(
+			const message =
 				err instanceof ApiError
 					? err.message
-					: "Unable to create maintenance record.",
-			);
+					: "Unable to create maintenance record.";
+			setError(message);
+			toast.error(message);
 		} finally {
 			setSubmitting(false);
 		}
@@ -98,13 +108,16 @@ export function MaintenancePage() {
 				title="Maintenance log"
 				description="Record service actions and identified issues."
 				actions={
-					<button
-						type="button"
-						className="btn btn-primary"
-						onClick={() => setShowForm((value) => !value)}
-					>
-						{showForm ? "Close form" : "Log maintenance"}
-					</button>
+					<div className="page-header__action-group">
+						<ViewModeToggle mode={viewMode} onChange={setViewMode} />
+						<button
+							type="button"
+							className="btn btn-primary"
+							onClick={() => setShowForm((value) => !value)}
+						>
+							{showForm ? "Close form" : "Log maintenance"}
+						</button>
+					</div>
 				}
 			/>
 
@@ -211,6 +224,8 @@ export function MaintenancePage() {
 
 			{loading ? (
 				<LoadingState message="Loading maintenance records..." />
+			) : viewMode === "json" ? (
+				<JsonPreview data={rawPayload ?? { items }} />
 			) : items.length === 0 ? (
 				<EmptyState
 					title="No maintenance records"

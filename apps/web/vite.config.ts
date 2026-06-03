@@ -18,14 +18,9 @@ export default defineConfig({
 	server: {
 		port: 5173,
 		proxy: {
-			"/auth": { target: apiTarget, changeOrigin: true },
-			"/extinguishers": { target: apiTarget, changeOrigin: true },
-			"/inspections": { target: apiTarget, changeOrigin: true },
-			"/maintenance": { target: apiTarget, changeOrigin: true },
-			"/reports": { target: apiTarget, changeOrigin: true },
-			"/notifications": { target: apiTarget, changeOrigin: true },
-			"/users": { target: apiTarget, changeOrigin: true },
+			"/api": { target: apiTarget, changeOrigin: true },
 			"/health": { target: apiTarget, changeOrigin: true },
+			"/docs.json": { target: apiTarget, changeOrigin: true },
 		},
 	},
 });

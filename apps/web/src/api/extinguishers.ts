@@ -35,14 +35,15 @@ export const extinguishersApi = {
 				total: response.total,
 				totalPages: Math.ceil(response.total / response.limit) || 1,
 			},
-		} satisfies PaginatedResponse<Extinguisher>;
+			raw: response,
+		} satisfies PaginatedResponse<Extinguisher> & { raw: ListResponse };
 	},
 
 	async getById(id: string) {
 		const response = await apiRequest<{ extinguisher: Extinguisher }>(
 			`/extinguishers/${id}`,
 		);
-		return { data: response.extinguisher };
+		return { data: response.extinguisher, raw: response };
 	},
 
 	async create(input: CreateExtinguisherInput) {

@@ -37,7 +37,8 @@ export const inspectionsApi = {
 				total: response.total,
 				totalPages: Math.ceil(response.total / response.limit) || 1,
 			},
-		} satisfies PaginatedResponse<Inspection>;
+			raw: response,
+		} satisfies PaginatedResponse<Inspection> & { raw: ListResponse };
 	},
 
 	async schedule(input: ScheduleInspectionInput) {

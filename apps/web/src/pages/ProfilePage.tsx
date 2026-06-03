@@ -9,12 +9,14 @@ import { PageHeader } from "@web/components/PageHeader";
 import { StatusBadge } from "@web/components/StatusBadge";
 import { useAuth } from "@web/contexts/AuthContext";
 import { useConfirm } from "@web/contexts/ConfirmContext";
+import { useToast } from "@web/contexts/ToastContext";
 import { roleLabels } from "@web/lib/labels";
 import { zodFieldErrors } from "@web/lib/form-errors";
 
 export function ProfilePage() {
 	const { user, refreshUser } = useAuth();
 	const { confirm } = useConfirm();
+	const toast = useToast();
 
 	const [firstName, setFirstName] = useState(user?.firstName ?? "");
 	const [lastName, setLastName] = useState(user?.lastName ?? "");
@@ -59,12 +61,14 @@ export function ProfilePage() {
 			await authApi.updateProfile(parsed.data);
 			await refreshUser();
 			setProfileMessage("Profile updated.");
+			toast.success("Profile updated.");
 		} catch (err) {
-			setError(
+			const message =
 				err instanceof ApiError
 					? err.message
-					: "Unable to update profile.",
-			);
+					: "Unable to update profile.";
+			setError(message);
+			toast.error(message);
 		} finally {
 			setProfileSubmitting(false);
 		}
@@ -100,12 +104,14 @@ export function ProfilePage() {
 			setCurrentPassword("");
 			setNewPassword("");
 			setPasswordMessage("Password updated.");
+			toast.success("Password updated.");
 		} catch (err) {
-			setError(
+			const message =
 				err instanceof ApiError
 					? err.message
-					: "Unable to change password.",
-			);
+					: "Unable to change password.";
+			setError(message);
+			toast.error(message);
 		} finally {
 			setPasswordSubmitting(false);
 		}

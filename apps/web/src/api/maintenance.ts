@@ -32,7 +32,8 @@ export const maintenanceApi = {
 				total: response.total,
 				totalPages: Math.ceil(response.total / response.limit) || 1,
 			},
-		} satisfies PaginatedResponse<MaintenanceRecord>;
+			raw: response,
+		} satisfies PaginatedResponse<MaintenanceRecord> & { raw: ListResponse };
 	},
 
 	async create(input: CreateMaintenanceInput) {

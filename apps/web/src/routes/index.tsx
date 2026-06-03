@@ -6,6 +6,7 @@ import { ProtectedRoute } from "@web/components/ProtectedRoute";
 import { RoleGuard } from "@web/components/RoleGuard";
 import { AuthProvider } from "@web/contexts/AuthContext";
 import { ConfirmProvider } from "@web/contexts/ConfirmContext";
+import { ToastProvider } from "@web/contexts/ToastContext";
 import { AdminUsersPage } from "@web/pages/AdminUsersPage";
 import { DashboardPage } from "@web/pages/DashboardPage";
 import { ExtinguisherDetailPage } from "@web/pages/ExtinguisherDetailPage";
@@ -15,14 +16,16 @@ import { ForgotPasswordPage } from "@web/pages/ForgotPasswordPage";
 import { InspectionsPage } from "@web/pages/InspectionsPage";
 import { LoginPage } from "@web/pages/LoginPage";
 import { MaintenancePage } from "@web/pages/MaintenancePage";
+import { NotificationsPage } from "@web/pages/NotificationsPage";
 import { ProfilePage } from "@web/pages/ProfilePage";
 import { RegisterPage } from "@web/pages/RegisterPage";
 import { ReportsPage } from "@web/pages/ReportsPage";
 
 export const AppRoutes = () => (
 	<BrowserRouter>
-		<AuthProvider>
-			<ConfirmProvider>
+		<ToastProvider>
+			<AuthProvider>
+				<ConfirmProvider>
 				<Routes>
 					<Route element={<AuthLayout />}>
 						<Route path="/login" element={<LoginPage />} />
@@ -32,11 +35,23 @@ export const AppRoutes = () => (
 					<Route element={<ProtectedRoute />}>
 						<Route element={<AppLayout />}>
 							<Route path="/dashboard" element={<DashboardPage />} />
+							<Route path="/notifications" element={<NotificationsPage />} />
 							<Route path="/extinguishers" element={<ExtinguishersPage />} />
-							<Route path="/extinguishers/new" element={<ExtinguisherFormPage />} />
+							<Route
+								path="/extinguishers/new"
+								element={
+									<RoleGuard roles={["inspector", "admin"]}>
+										<ExtinguisherFormPage />
+									</RoleGuard>
+								}
+							/>
 							<Route
 								path="/extinguishers/:id/edit"
-								element={<ExtinguisherFormPage />}
+								element={
+									<RoleGuard roles={["inspector", "admin"]}>
+										<ExtinguisherFormPage />
+									</RoleGuard>
+								}
 							/>
 							<Route
 								path="/extinguishers/:id"
@@ -73,7 +88,8 @@ export const AppRoutes = () => (
 					<Route path="/" element={<Navigate to="/dashboard" replace />} />
 					<Route path="*" element={<Navigate to="/dashboard" replace />} />
 				</Routes>
-			</ConfirmProvider>
-		</AuthProvider>
+				</ConfirmProvider>
+			</AuthProvider>
+		</ToastProvider>
 	</BrowserRouter>
 );

@@ -7,7 +7,10 @@ import { ErrorAlert } from "@web/components/ErrorAlert";
 import { FormField } from "@web/components/FormField";
 import { LoadingState } from "@web/components/LoadingState";
 import { PageHeader } from "@web/components/PageHeader";
+import { JsonPreview } from "@web/components/JsonPreview";
+import { ViewModeToggle, type ViewMode } from "@web/components/ViewModeToggle";
 import { useConfirm } from "@web/contexts/ConfirmContext";
+import { useToast } from "@web/contexts/ToastContext";
 import {
 	extinguisherStatusLabels,
 	extinguisherTypeLabels,
@@ -16,8 +19,10 @@ import {
 
 export function ReportsPage() {
 	const { confirm } = useConfirm();
+	const toast = useToast();
 
 	const [summary, setSummary] = useState<ReportSummary | null>(null);
+	const [viewMode, setViewMode] = useState<ViewMode>("ui");
 	const [fromDate, setFromDate] = useState("");
 	const [toDate, setToDate] = useState("");
 	const [loading, setLoading] = useState(true);
@@ -34,13 +39,14 @@ export function ReportsPage() {
 			});
 			setSummary(response.data);
 		} catch (err) {
-			setError(
-				err instanceof ApiError ? err.message : "Unable to load report summary.",
-			);
+			const message =
+				err instanceof ApiError ? err.message : "Unable to load report summary.";
+			setError(message);
+			toast.error(message);
 		} finally {
 			setLoading(false);
 		}
-	}, [fromDate, toDate]);
+	}, [fromDate, toDate, toast]);
 
 	useEffect(() => {
 		void loadSummary();
@@ -73,10 +79,12 @@ export function ReportsPage() {
 			anchor.download = `tzw-report.${format}`;
 			anchor.click();
 			URL.revokeObjectURL(url);
+			toast.success(`${format.toUpperCase()} report downloaded.`);
 		} catch (err) {
-			setError(
-				err instanceof ApiError ? err.message : "Unable to export report.",
-			);
+			const message =
+				err instanceof ApiError ? err.message : "Unable to export report.";
+			setError(message);
+			toast.error(message);
 		} finally {
 			setExporting(null);
 		}
@@ -88,7 +96,8 @@ export function ReportsPage() {
 				title="Reports"
 				description="Review compliance summary and export records."
 				actions={
-					<>
+					<div className="page-header__action-group">
+						<ViewModeToggle mode={viewMode} onChange={setViewMode} />
 						<button
 							type="button"
 							className="btn btn-secondary"
@@ -105,7 +114,7 @@ export function ReportsPage() {
 						>
 							{exporting === "pdf" ? "Exporting PDF..." : "Export PDF"}
 						</button>
-					</>
+					</div>
 				}
 			/>
 
@@ -135,6 +144,8 @@ export function ReportsPage() {
 
 			{loading ? (
 				<LoadingState message="Loading report summary..." />
+			) : viewMode === "json" && summary ? (
+				<JsonPreview data={{ report: summary }} label="Report summary (JSON)" />
 			) : summary ? (
 				<>
 					<p className="report-meta">

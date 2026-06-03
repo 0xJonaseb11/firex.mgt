@@ -8,9 +8,13 @@ import type { Extinguisher } from "@web/api/types";
 import { EmptyState } from "@web/components/EmptyState";
 import { ErrorAlert } from "@web/components/ErrorAlert";
 import { FormField } from "@web/components/FormField";
+import { JsonPreview } from "@web/components/JsonPreview";
 import { LoadingState } from "@web/components/LoadingState";
 import { PageHeader } from "@web/components/PageHeader";
 import { StatusBadge } from "@web/components/StatusBadge";
+import { ViewModeToggle, type ViewMode } from "@web/components/ViewModeToggle";
+import { useAuth } from "@web/contexts/AuthContext";
+import { useToast } from "@web/contexts/ToastContext";
 import {
 	extinguisherStatusLabels,
 	extinguisherTypeLabels,
@@ -18,7 +22,14 @@ import {
 } from "@web/lib/labels";
 
 export function ExtinguishersPage() {
+	const { user } = useAuth();
+	const toast = useToast();
+	const canManage =
+		user?.role === "admin" || user?.role === "inspector";
+
 	const [items, setItems] = useState<Extinguisher[]>([]);
+	const [rawPayload, setRawPayload] = useState<unknown>(null);
+	const [viewMode, setViewMode] = useState<ViewMode>("ui");
 	const [loading, setLoading] = useState(true);
 	const [error, setError] = useState<string | null>(null);
 	const [search, setSearch] = useState("");
@@ -36,16 +47,18 @@ export function ExtinguishersPage() {
 			});
 			const response = await extinguishersApi.list(filters);
 			setItems(response.data);
+			setRawPayload(response.raw);
 		} catch (err) {
-			setError(
+			const message =
 				err instanceof ApiError
 					? err.message
-					: "Unable to load extinguishers.",
-			);
+					: "Unable to load extinguishers.";
+			setError(message);
+			toast.error(message);
 		} finally {
 			setLoading(false);
 		}
-	}, [search, status, type]);
+	}, [search, status, type, toast]);
 
 	useEffect(() => {
 		void load();
@@ -57,9 +70,14 @@ export function ExtinguishersPage() {
 				title="Extinguishers"
 				description="Track inventory, locations, and compliance status."
 				actions={
-					<Link to="/extinguishers/new" className="btn btn-primary">
-						Add extinguisher
-					</Link>
+					<div className="page-header__action-group">
+						<ViewModeToggle mode={viewMode} onChange={setViewMode} />
+						{canManage ? (
+							<Link to="/extinguishers/new" className="btn btn-primary">
+								Add extinguisher
+							</Link>
+						) : null}
+					</div>
 				}
 			/>
 
@@ -100,23 +118,31 @@ export function ExtinguishersPage() {
 							</option>
 						))}
 					</FormField>
-					<button type="button" className="btn btn-secondary" onClick={() => void load()}>
+					<button
+						type="button"
+						className="btn btn-secondary"
+						onClick={() => void load()}
+					>
 						Apply filters
 					</button>
 				</div>
 			</section>
 
-			{error ? <ErrorAlert message={error} /> : null}
+			{error ? <ErrorAlert message={error} onDismiss={() => setError(null)} /> : null}
 			{loading ? (
 				<LoadingState message="Loading extinguishers..." />
+			) : viewMode === "json" ? (
+				<JsonPreview data={rawPayload ?? { items }} />
 			) : items.length === 0 ? (
 				<EmptyState
 					title="No extinguishers found"
 					description="Adjust filters or add a new extinguisher."
 					action={
-						<Link to="/extinguishers/new" className="btn btn-primary">
-							Add extinguisher
-						</Link>
+						canManage ? (
+							<Link to="/extinguishers/new" className="btn btn-primary">
+								Add extinguisher
+							</Link>
+						) : undefined
 					}
 				/>
 			) : (
@@ -154,7 +180,10 @@ export function ExtinguishersPage() {
 									</td>
 									<td>{formatDate(item.expiryDate)}</td>
 									<td>
-										<Link to={`/extinguishers/${item.id}`} className="link-button">
+										<Link
+											to={`/extinguishers/${item.id}`}
+											className="link-button"
+										>
 											View
 										</Link>
 									</td>

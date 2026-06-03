@@ -6,9 +6,11 @@ import { authApi } from "@web/api/auth";
 import { ApiError } from "@web/api/client";
 import { ErrorAlert } from "@web/components/ErrorAlert";
 import { FormField } from "@web/components/FormField";
+import { useToast } from "@web/contexts/ToastContext";
 import { zodFieldErrors } from "@web/lib/form-errors";
 
 export function ForgotPasswordPage() {
+	const toast = useToast();
 	const [searchParams] = useSearchParams();
 	const tokenFromUrl = searchParams.get("token") ?? "";
 	const [mode, setMode] = useState<"request" | "reset">(
@@ -40,16 +42,18 @@ export function ForgotPasswordPage() {
 		setSubmitting(true);
 		try {
 			const response = await authApi.forgotPassword(parsed.data);
-			setSuccessMessage(
+			const message =
 				response.message ??
-					"If an account exists for this email, reset instructions have been sent.",
-			);
+				"If an account exists for this email, reset instructions have been sent.";
+			setSuccessMessage(message);
+			toast.success(message);
 		} catch (err) {
-			setErrorMessage(
+			const message =
 				err instanceof ApiError
 					? err.message
-					: "Unable to process request. Please try again.",
-			);
+					: "Unable to process request. Please try again.";
+			setErrorMessage(message);
+			toast.error(message);
 		} finally {
 			setSubmitting(false);
 		}
@@ -70,13 +74,16 @@ export function ForgotPasswordPage() {
 		setSubmitting(true);
 		try {
 			const response = await authApi.resetPassword(parsed.data);
-			setSuccessMessage("Password updated. You may sign in now.");
+			const message = "Password updated. You may sign in now.";
+			setSuccessMessage(message);
+			toast.success(message);
 		} catch (err) {
-			setErrorMessage(
+			const message =
 				err instanceof ApiError
 					? err.message
-					: "Unable to reset password. Please try again.",
-			);
+					: "Unable to reset password. Please try again.";
+			setErrorMessage(message);
+			toast.error(message);
 		} finally {
 			setSubmitting(false);
 		}

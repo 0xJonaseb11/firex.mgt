@@ -1,5 +1,7 @@
 import type { UserRole } from "@repo/contracts";
 
+import { apiPath } from "@web/lib/api-path";
+
 export interface ApiErrorBody {
 	error?: string;
 	message?: string;
@@ -146,7 +148,7 @@ export async function apiRequest<T>(
 		headers.set("Content-Type", "application/json");
 	}
 
-	const response = await fetch(path, {
+	const response = await fetch(apiPath(path), {
 		...options,
 		headers,
 		credentials: "include",
