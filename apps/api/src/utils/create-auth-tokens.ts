@@ -1,5 +1,5 @@
 import type { CookieOptions, Response } from "express";
-import * as jwt from "jsonwebtoken";
+import jwt from "jsonwebtoken";
 
 import config from "@api/config";
 import { getUserById } from "@api/db/queries";

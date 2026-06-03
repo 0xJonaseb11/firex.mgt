@@ -7,6 +7,7 @@ import type { DashboardMetrics, ReportSummary } from "@web/api/types";
 import { ErrorAlert } from "@web/components/ErrorAlert";
 import { LoadingState } from "@web/components/LoadingState";
 import { PageHeader } from "@web/components/PageHeader";
+import { useAuth } from "@web/contexts/AuthContext";
 import { formatDate } from "@web/lib/labels";
 
 function mapSummaryToMetrics(summary: ReportSummary): DashboardMetrics {
@@ -22,6 +23,8 @@ function mapSummaryToMetrics(summary: ReportSummary): DashboardMetrics {
 }
 
 export function DashboardPage() {
+	const { user } = useAuth();
+	const isStaff = user?.role === "admin" || user?.role === "inspector";
 	const [metrics, setMetrics] = useState<DashboardMetrics | null>(null);
 	const [unreadCount, setUnreadCount] = useState(0);
 	const [generatedAt, setGeneratedAt] = useState<string | null>(null);
@@ -124,15 +127,19 @@ export function DashboardPage() {
 			<section className="panel">
 				<h2 className="panel__title">Quick actions</h2>
 				<div className="action-row">
-					<Link to="/extinguishers/new" className="btn btn-secondary">
-						Add extinguisher
-					</Link>
+					{isStaff ? (
+						<Link to="/extinguishers/new" className="btn btn-secondary">
+							Add extinguisher
+						</Link>
+					) : null}
 					<Link to="/inspections" className="btn btn-secondary">
 						Schedule inspection
 					</Link>
-					<Link to="/reports" className="btn btn-secondary">
-						View reports
-					</Link>
+					{isStaff ? (
+						<Link to="/reports" className="btn btn-secondary">
+							View reports
+						</Link>
+					) : null}
 				</div>
 			</section>
 		</div>

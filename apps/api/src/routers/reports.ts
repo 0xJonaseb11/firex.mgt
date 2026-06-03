@@ -21,7 +21,6 @@ export function createReportsRouter(): Router {
 	router.get(
 		"/summary",
 		requireAuth,
-		requireRole("admin", "inspector"),
 		asyncHandler(async (_req, res) => {
 			const summary = await generateReportSummary();
 			res.json({ report: serializeReportSummary(summary) });
