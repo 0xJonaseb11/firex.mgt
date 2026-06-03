@@ -5,7 +5,7 @@ import express from "express";
 import helmet from "helmet";
 
 import config from "@api/config";
-import { requestLogger } from "@api/middlewares";
+import { errorHandler, requestLogger } from "@api/middlewares";
 import { createHealthRouter } from "@api/routers/health";
 import logger from "@api/utils/logger";
 
@@ -21,6 +21,7 @@ async function startServer() {
 		app.use(compression());
 		app.use(requestLogger);
 		app.use(createHealthRouter());
+		app.use(errorHandler);
 		app.use((req, res) => {
 			res.status(404).json({ error: "NOT_FOUND", message: `Route ${req.method} ${req.path} not found` });
 		});
