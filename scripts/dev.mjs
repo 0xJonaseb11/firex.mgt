@@ -1,7 +1,3 @@
-/**
- * Starts API first, waits until /health responds, then starts Vite.
- * Avoids ECONNREFUSED when the web proxy hits the API during slow DB/SMTP startup.
- */
 import { spawn } from "node:child_process";
 import { readFileSync } from "node:fs";
 import path from "node:path";
@@ -22,9 +18,7 @@ function readApiPort() {
 		if (match) {
 			return Number(match[1]);
 		}
-	} catch {
-		// no .env yet
-	}
+	} catch {}
 
 	return 8080;
 }
@@ -63,9 +57,7 @@ async function waitForApi(timeoutMs = 120_000) {
 				process.stdout.write("[dev] API is ready.\n");
 				return;
 			}
-		} catch {
-			// not listening yet
-		}
+		} catch {}
 		await new Promise((resolve) => setTimeout(resolve, 400));
 	}
 

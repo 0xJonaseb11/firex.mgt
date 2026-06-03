@@ -1,9 +1,3 @@
-/**
- * Exports a plain SQL backup using pg_dump when available.
- * Resolves the DB URL from apps/api/.env (same rules as the API).
- *
- * Usage: npm run db:backup
- */
 import { spawn } from "node:child_process";
 import { existsSync, mkdirSync, readFileSync } from "node:fs";
 import path from "node:path";
@@ -103,9 +97,7 @@ function runPgDump(url, index) {
 	let host = "database";
 	try {
 		host = new URL(url.replace(/^postgres:/, "http:")).hostname;
-	} catch {
-		// ignore
-	}
+	} catch {}
 
 	if (index > 0) {
 		console.log(`[db-backup] Retrying with ${host}...`);

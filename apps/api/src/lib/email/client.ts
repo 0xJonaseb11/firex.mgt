@@ -155,7 +155,6 @@ export async function sendEmail(input: SendEmailInput): Promise<boolean> {
 		}
 	}
 
-	// Exam-friendly default: Ethereal needs no phone or API signup
 	if (provider === "auto" && config.isDevelopment) {
 		return sendViaEthereal(input);
 	}

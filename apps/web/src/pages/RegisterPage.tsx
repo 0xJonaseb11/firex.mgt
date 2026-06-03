@@ -49,7 +49,6 @@ export function RegisterPage() {
 				{ replace: true },
 			);
 		} catch {
-			// Error handled in context
 		} finally {
 			setSubmitting(false);
 		}

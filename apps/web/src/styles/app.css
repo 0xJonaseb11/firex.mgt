@@ -1490,7 +1490,6 @@ textarea {
 	opacity: 1;
 }
 
-/* Tablet and below: drawer navigation */
 @media (max-width: 1023px) {
 	.app-shell {
 		grid-template-columns: 1fr;
@@ -1532,7 +1531,6 @@ textarea {
 	}
 }
 
-/* Phone */
 @media (max-width: 639px) {
 	.page-header {
 		flex-direction: column;
@@ -1700,7 +1698,6 @@ textarea {
 	}
 }
 
-/* Very small phones */
 @media (max-width: 380px) {
 	.metric-grid,
 	.metric-grid--compact,
@@ -1729,7 +1726,6 @@ textarea {
 	}
 }
 
-/* Large screens: comfortable reading width already via container */
 @media (min-width: 1440px) {
 	.main-content {
 		padding-left: max(2.5rem, env(safe-area-inset-left));
@@ -1737,7 +1733,6 @@ textarea {
 	}
 }
 
-/* Touch targets */
 @media (pointer: coarse) {
 	.btn:not(.btn-sm) {
 		min-height: 2.75rem;

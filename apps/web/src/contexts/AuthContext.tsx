@@ -69,7 +69,6 @@ export function AuthProvider({ children }: { children: ReactNode }) {
 			setUser(response.user);
 		} catch (err) {
 			setUser(null);
-			// Not signed in, API still starting, or proxy hiccup — not an app error.
 			if (err instanceof ApiError && (err.status === 401 || err.status >= 500)) {
 				return;
 			}

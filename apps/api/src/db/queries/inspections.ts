@@ -12,9 +12,7 @@ type InspectionFilter = {
 	status?: Inspection["status"];
 	extinguisherId?: string;
 	assignedInspectorId?: string;
-	/** Inspector sees assigned jobs plus unassigned pool */
 	forInspectorUserId?: string;
-	/** Regular users see inspections they scheduled */
 	scheduledByUserId?: string;
 	fromDate?: string;
 	toDate?: string;

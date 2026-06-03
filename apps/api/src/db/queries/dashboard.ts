@@ -64,7 +64,6 @@ export type DashboardPayload = {
 	};
 };
 
-/** Muted accent palette — readable charts without loud UI */
 const CHART_SEQUENCE = [
 	"#5b7c99",
 	"#6b8f71",
@@ -419,7 +418,6 @@ export async function generateDashboard(
 		};
 	}
 
-	// Regular user — schedule inspections; fleet is read-only; no inspector assignment
 	const inspectionCounts = await countInspectionsScoped("user", userId);
 	const byStatus = await countExtinguishersByStatus();
 	const byType = await countExtinguishersByType();

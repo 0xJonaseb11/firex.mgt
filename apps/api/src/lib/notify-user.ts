@@ -29,9 +29,7 @@ export async function notifyUser(
 	});
 
 	if (input.email) {
-		void sendEmail(input.email).catch(() => {
-			// Logged in sendEmail; in-app notification still delivered.
-		});
+		void sendEmail(input.email).catch(() => {});
 	}
 
 	return notification;

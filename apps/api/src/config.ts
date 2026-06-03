@@ -10,7 +10,6 @@ const apiRoot = path.resolve(
 	path.dirname(fileURLToPath(import.meta.url)),
 	"..",
 );
-// Turbo runs from the monorepo root; always load apps/api/.env explicitly.
 dotenv.config({ path: path.join(apiRoot, ".env") });
 
 const configSchema = z

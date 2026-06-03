@@ -4,7 +4,6 @@ interface BarChartProps {
 	title: string;
 	segments: ChartSegment[];
 	emptyLabel?: string;
-	/** Show zero-value rows so status breakdowns stay readable */
 	showZeros?: boolean;
 }
 
