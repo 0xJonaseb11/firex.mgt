@@ -6,12 +6,14 @@ import helmet from "helmet";
 import config from "@api/config";
 import { errorHandler, globalRateLimiter, requestLogger } from "@api/middlewares";
 import { createAuthRouter } from "@api/routers/auth";
+import { createDocsRouter } from "@api/routers/docs";
 import { createHealthRouter } from "@api/routers/health";
 import { createUsersRouter } from "@api/routers/users";
 import logger from "@api/utils/logger";
 
 async function startServer() {
 	const app = express();
+	app.use(createDocsRouter());
 	app.use(helmet());
 	app.use(cors({ origin: config.corsOrigin, credentials: true }));
 	app.set("trust proxy", 1);
