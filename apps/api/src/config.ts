@@ -37,12 +37,20 @@ const configSchema = z
 		REFRESH_TOKEN_SECRET: z.string(),
 		ACCESS_TOKEN_SECRET: z.string(),
 		EMAIL_PROVIDER: z
-			.enum(["resend", "brevo", "ethereal", "auto"])
+			.enum(["resend", "brevo", "ethereal", "smtp", "auto"])
 			.default("auto"),
 		RESEND_API_KEY: z.string().optional(),
 		BREVO_API_KEY: z.string().optional(),
 		BREVO_SENDER_EMAIL: z.string().email().optional(),
 		BREVO_SENDER_NAME: z.string().default("TZW Fire Safety"),
+		SMTP_HOST: z.string().default("smtp.gmail.com"),
+		SMTP_PORT: z.coerce.number().default(587),
+		SMTP_SECURE: z
+			.enum(["true", "false"])
+			.default("false")
+			.transform((v) => v === "true"),
+		SMTP_USER: z.string().optional(),
+		SMTP_PASS: z.string().optional(),
 		EMAIL_FROM: z.string().default("TZW Fire Safety <onboarding@resend.dev>"),
 		APP_PUBLIC_URL: z.string().url().default("http://localhost:5173"),
 	})
@@ -139,6 +147,11 @@ export const config = {
 	brevoApiKey: parsed.data.BREVO_API_KEY?.trim() || undefined,
 	brevoSenderEmail: parsed.data.BREVO_SENDER_EMAIL?.trim() || undefined,
 	brevoSenderName: parsed.data.BREVO_SENDER_NAME,
+	smtpHost: parsed.data.SMTP_HOST.trim(),
+	smtpPort: parsed.data.SMTP_PORT,
+	smtpSecure: parsed.data.SMTP_SECURE,
+	smtpUser: parsed.data.SMTP_USER?.trim() || undefined,
+	smtpPass: parsed.data.SMTP_PASS?.trim() || undefined,
 	emailFrom: parsed.data.EMAIL_FROM,
 	appPublicUrl: parsed.data.APP_PUBLIC_URL.replace(/\/$/, ""),
 };

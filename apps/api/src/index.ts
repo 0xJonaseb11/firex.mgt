@@ -5,13 +5,10 @@ import express from "express";
 import helmet from "helmet";
 
 import config from "@api/config";
-import { sql } from "@api/db";
+import { resolvedDatabaseUrl, sql } from "@api/db";
 import { ensureEmailVerificationSchema } from "@api/db/ensure-schema";
 import { grandfatherExistingUserEmails } from "@api/db/queries";
-import {
-	detectDatabaseProvider,
-	verifyDatabaseConnection,
-} from "@api/lib/database";
+import { detectDatabaseProvider } from "@api/lib/database";
 import {
 	errorHandler,
 	globalRateLimiter,
@@ -19,6 +16,7 @@ import {
 } from "@api/middlewares";
 import { createAuthRouter } from "@api/routers/auth";
 import { bootstrapEmailTransport } from "@api/lib/email/client";
+import { isSmtpConfigured, isSmtpReady } from "@api/lib/email/smtp";
 import { createDocsRouter } from "@api/routers/docs";
 import { createDevMailRouter } from "@api/routers/dev-mail";
 import { createExtinguishersRouter } from "@api/routers/extinguishers";
@@ -32,14 +30,21 @@ import logger from "@api/utils/logger";
 
 async function startServer() {
 	try {
-		const databaseProvider = detectDatabaseProvider(config.databaseUrl);
-		await verifyDatabaseConnection(sql);
-		logger.info("Database connected", { provider: databaseProvider });
+		const databaseProvider = detectDatabaseProvider(resolvedDatabaseUrl);
+		logger.info("Database connected", {
+			provider: databaseProvider,
+			urlHost: new URL(
+				resolvedDatabaseUrl.replace(/^postgres:\/\//, "postgresql://"),
+			).hostname,
+		});
 		await ensureEmailVerificationSchema();
 		await grandfatherExistingUserEmails();
 		await bootstrapEmailTransport();
 		logger.info("Email delivery", {
 			provider: config.emailProvider,
+			smtpConfigured: isSmtpConfigured(),
+			smtpReady: isSmtpReady(),
+			smtpUser: config.smtpUser,
 			resendConfigured: Boolean(config.resendApiKey),
 			brevoConfigured: Boolean(
 				config.brevoApiKey && config.brevoSenderEmail,
@@ -47,6 +52,10 @@ async function startServer() {
 			from: config.emailFrom,
 			brevoSender: config.brevoSenderEmail,
 			appPublicUrl: config.appPublicUrl,
+			note:
+				config.emailProvider === "ethereal"
+					? "Ethereal does not deliver to real inboxes — use smtp, brevo, or resend"
+					: undefined,
 		});
 
 		const app = express();

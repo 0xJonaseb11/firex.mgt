@@ -76,25 +76,82 @@ export type DatabaseEnv = {
 	SUPABASE_POOLER_HOST?: string;
 };
 
-export const resolveDatabaseUrlFromEnv = (env: DatabaseEnv): string => {
+export const resolveDatabaseUrlCandidates = (env: DatabaseEnv): string[] => {
 	if (isUsableDatabaseUrl(env.DATABASE_URL)) {
-		return env.DATABASE_URL.trim();
+		return [env.DATABASE_URL.trim()];
 	}
 
 	const ref = env.SUPABASE_PROJECT_REF?.trim();
 	const password = env.SUPABASE_DB_PASSWORD?.trim();
 	const poolerHost = env.SUPABASE_POOLER_HOST?.trim();
+	const candidates: string[] = [];
 
 	if (ref && password && poolerHost) {
-		return buildSupabaseSessionPoolerUrl(ref, password, poolerHost);
+		candidates.push(buildSupabaseSessionPoolerUrl(ref, password, poolerHost));
 	}
 
 	if (ref && password) {
-		return buildSupabaseDatabaseUrl(ref, password);
+		candidates.push(buildSupabaseDatabaseUrl(ref, password));
+	}
+
+	if (candidates.length === 0) {
+		throw new Error(
+			"Set DATABASE_URL, or SUPABASE_PROJECT_REF + SUPABASE_DB_PASSWORD (+ optional SUPABASE_POOLER_HOST).",
+		);
+	}
+
+	return [...new Set(candidates)];
+};
+
+export const resolveDatabaseUrlFromEnv = (env: DatabaseEnv): string =>
+	resolveDatabaseUrlCandidates(env)[0]!;
+
+export const isRecoverableConnectionError = (error: unknown): boolean => {
+	if (!error || typeof error !== "object") {
+		return false;
+	}
+	const code =
+		"code" in error && typeof error.code === "string" ? error.code : "";
+	const errno = "errno" in error && typeof error.errno === "number" ? error.errno : 0;
+	return (
+		code === "ENOTFOUND" ||
+		code === "ECONNREFUSED" ||
+		code === "ETIMEDOUT" ||
+		code === "EAI_AGAIN" ||
+		errno === -3008 ||
+		errno === -4039
+	);
+};
+
+export const connectSqlWithFallback = async (
+	env: DatabaseEnv,
+): Promise<{ client: Sql; databaseUrl: string }> => {
+	const candidates = resolveDatabaseUrlCandidates(env);
+	const errors: string[] = [];
+
+	for (const candidate of candidates) {
+		const connectUrl = await resolveDatabaseUrlForConnect(candidate);
+		const client = createSqlClient(connectUrl);
+
+		try {
+			await verifyDatabaseConnection(client);
+			return { client, databaseUrl: candidate };
+		} catch (error) {
+			await client.end({ timeout: 1 }).catch(() => undefined);
+			const message =
+				error instanceof Error ? error.message : String(error);
+			errors.push(`${candidate} → ${message}`);
+
+			if (!isRecoverableConnectionError(error)) {
+				throw error;
+			}
+		}
 	}
 
 	throw new Error(
-		"Set DATABASE_URL, or SUPABASE_PROJECT_REF + SUPABASE_DB_PASSWORD (+ SUPABASE_POOLER_HOST for session pooler).",
+		`Database connection failed for all configured URLs.\n${errors.join("\n")}\n` +
+			"Fix: In Supabase Dashboard → Connect, copy the Session pooler URI into DATABASE_URL, " +
+			"or remove SUPABASE_POOLER_HOST to use the direct db.*.supabase.co host.",
 	);
 };
 

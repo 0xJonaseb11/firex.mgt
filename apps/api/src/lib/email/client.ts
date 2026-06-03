@@ -3,6 +3,12 @@ import { Resend } from "resend";
 import config from "@api/config";
 import { recordDevMail } from "@api/lib/email/dev-outbox";
 import { sendViaEthereal, initEtherealTransport } from "@api/lib/email/ethereal";
+import {
+	initSmtpTransport,
+	isSmtpConfigured,
+	isSmtpReady,
+	sendViaSmtp,
+} from "@api/lib/email/smtp";
 import type { SendEmailInput } from "@api/lib/email/types";
 import logger from "@api/utils/logger";
 
@@ -120,6 +126,19 @@ export async function sendEmail(input: SendEmailInput): Promise<boolean> {
 		return sent || logConsoleFallback(input);
 	}
 
+	if (
+		provider === "smtp" ||
+		(provider === "auto" && isSmtpConfigured())
+	) {
+		const sent = await sendViaSmtp(input);
+		if (sent) {
+			return true;
+		}
+		if (provider === "smtp") {
+			return logConsoleFallback(input);
+		}
+	}
+
 	if (provider === "brevo" || (provider === "auto" && config.brevoApiKey)) {
 		const sent = await sendViaBrevo(input);
 		if (sent) {
@@ -147,11 +166,20 @@ export async function sendEmail(input: SendEmailInput): Promise<boolean> {
 
 export async function bootstrapEmailTransport(): Promise<void> {
 	if (
+		config.emailProvider === "smtp" ||
+		(config.emailProvider === "auto" && isSmtpConfigured())
+	) {
+		await initSmtpTransport().catch(() => false);
+		return;
+	}
+
+	if (
 		config.emailProvider === "ethereal" ||
 		(config.emailProvider === "auto" &&
 			config.isDevelopment &&
 			!config.brevoApiKey &&
-			!config.resendApiKey)
+			!config.resendApiKey &&
+			!isSmtpConfigured())
 	) {
 		await initEtherealTransport();
 	}
