@@ -7,11 +7,24 @@ import {
 	useState,
 	type ReactNode,
 } from "react";
+import { useLocation } from "react-router-dom";
 
 import { authApi } from "@web/api/auth";
 import { ApiError } from "@web/api/client";
 import type { User } from "@web/api/types";
 import { useToast } from "@web/contexts/ToastContext";
+
+const PUBLIC_AUTH_PATHS = new Set([
+	"/login",
+	"/register",
+	"/forgot-password",
+	"/check-email",
+	"/verify-email",
+]);
+
+function isPublicAuthPath(pathname: string): boolean {
+	return PUBLIC_AUTH_PATHS.has(pathname);
+}
 
 interface AuthContextValue {
 	user: User | null;
@@ -35,6 +48,7 @@ const AuthContext = createContext<AuthContextValue | null>(null);
 
 export function AuthProvider({ children }: { children: ReactNode }) {
 	const toast = useToast();
+	const location = useLocation();
 	const [user, setUser] = useState<User | null>(null);
 	const [loading, setLoading] = useState(true);
 	const [error, setError] = useState<string | null>(null);
@@ -45,7 +59,8 @@ export function AuthProvider({ children }: { children: ReactNode }) {
 			if (
 				response.user &&
 				!response.user.emailVerified &&
-				response.user.role !== "admin"
+				response.user.role !== "admin" &&
+				response.user.role !== "inspector"
 			) {
 				await authApi.logout();
 				setUser(null);
@@ -54,23 +69,30 @@ export function AuthProvider({ children }: { children: ReactNode }) {
 			setUser(response.user);
 		} catch (err) {
 			setUser(null);
-			if (err instanceof ApiError && err.status === 401) {
+			// Not signed in, API still starting, or proxy hiccup — not an app error.
+			if (err instanceof ApiError && (err.status === 401 || err.status >= 500)) {
 				return;
 			}
-			throw err;
+			if (err instanceof TypeError) {
+				return;
+			}
 		}
 	}, []);
 
 	useEffect(() => {
 		let active = true;
 
+		if (isPublicAuthPath(location.pathname)) {
+			setUser(null);
+			setLoading(false);
+			return () => {
+				active = false;
+			};
+		}
+
 		(async () => {
 			try {
 				await refreshUser();
-			} catch {
-				if (active) {
-					setUser(null);
-				}
 			} finally {
 				if (active) {
 					setLoading(false);
@@ -81,7 +103,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
 		return () => {
 			active = false;
 		};
-	}, [refreshUser]);
+	}, [location.pathname, refreshUser]);
 
 	const login = useCallback(async (email: string, password: string) => {
 		setError(null);

@@ -42,8 +42,12 @@ export function ForgotPasswordPage() {
 			const message =
 				response.message ??
 				"If an account exists for this email, reset instructions have been sent.";
-			setSuccessMessage(message);
-			toast.success(message);
+			setSuccessMessage(
+				`${message} In development, open Dev mail (admin sidebar) or the API terminal for the reset link preview.`,
+			);
+			toast.success(
+				"Reset link sent. Check Dev mail or API logs in development.",
+			);
 		} catch (err) {
 			const message =
 				err instanceof ApiError

@@ -94,13 +94,21 @@ async function sendViaResend(input: SendEmailInput): Promise<boolean> {
 	return true;
 }
 
+function extractLinkFromContent(input: SendEmailInput): string | undefined {
+	const source = input.text ?? input.html;
+	const match = source.match(/https?:\/\/[^\s<"]+/);
+	return match?.[0];
+}
+
 function logConsoleFallback(input: SendEmailInput): boolean {
-	logger.warn("Email logged to console (no provider delivered)", {
+	const previewUrl = extractLinkFromContent(input);
+	logger.warn("Email captured for dev demo (open Dev mail in app or use link below)", {
 		to: input.to,
 		subject: input.subject,
+		previewUrl,
 		textPreview: input.text ?? input.html.slice(0, 400),
 	});
-	recordDevMail({ ...input, provider: "console" });
+	recordDevMail({ ...input, provider: "console", previewUrl });
 	return config.isDevelopment;
 }
 
@@ -108,7 +116,8 @@ export async function sendEmail(input: SendEmailInput): Promise<boolean> {
 	const provider = config.emailProvider;
 
 	if (provider === "ethereal") {
-		return sendViaEthereal(input);
+		const sent = await sendViaEthereal(input);
+		return sent || logConsoleFallback(input);
 	}
 
 	if (provider === "brevo" || (provider === "auto" && config.brevoApiKey)) {

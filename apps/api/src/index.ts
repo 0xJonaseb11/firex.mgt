@@ -6,6 +6,7 @@ import helmet from "helmet";
 
 import config from "@api/config";
 import { sql } from "@api/db";
+import { ensureEmailVerificationSchema } from "@api/db/ensure-schema";
 import { grandfatherExistingUserEmails } from "@api/db/queries";
 import {
 	detectDatabaseProvider,
@@ -34,6 +35,7 @@ async function startServer() {
 		const databaseProvider = detectDatabaseProvider(config.databaseUrl);
 		await verifyDatabaseConnection(sql);
 		logger.info("Database connected", { provider: databaseProvider });
+		await ensureEmailVerificationSchema();
 		await grandfatherExistingUserEmails();
 		await bootstrapEmailTransport();
 		logger.info("Email delivery", {
