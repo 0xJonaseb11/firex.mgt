@@ -32,8 +32,8 @@ yarn-error.log*
 .pnpm-debug.log*
 
 # local env files
-.env
-.env*.local
+# .env
+# .env*.local
 
 # database dumps (npm run db:backup)
 backups/
