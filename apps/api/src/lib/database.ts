@@ -248,8 +248,8 @@ export const createSqlClient = (url: string): Sql => {
 	if (ipv6Host) {
 		const port = Number(parsed.port) || 5432;
 		return postgres({
-			host: [ipv6Host],
-			port: [port],
+			host: ipv6Host,
+			port,
 			username: decodeURIComponent(parsed.username),
 			password: decodeURIComponent(parsed.password),
 			database: parsed.pathname.replace(/^\//, "") || "postgres",

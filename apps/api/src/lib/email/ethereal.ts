@@ -45,7 +45,7 @@ export async function sendViaEthereal(input: SendEmailInput): Promise<boolean> {
 			text: input.text,
 		});
 
-		const previewUrl = nodemailer.getTestMessageUrl(info) ?? undefined;
+		const previewUrl = nodemailer.getTestMessageUrl(info) || undefined;
 
 		logger.info("Email sent via Ethereal — open preview to view", {
 			to: input.to,

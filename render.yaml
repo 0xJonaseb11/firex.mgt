@@ -10,7 +10,7 @@ services:
     repo: https://github.com/0xJonaseb11/firex.mgt
     branch: main
     buildCommand: >-
-      npm install &&
+      npm install --include=dev &&
       npm run build --workspace=@tzw-firex/contracts &&
       npm run build --workspace=@tzw-firex/api
     startCommand: npm run start --workspace=@tzw-firex/api
@@ -50,7 +50,7 @@ services:
     repo: https://github.com/0xJonaseb11/firex.mgt
     branch: main
     buildCommand: >-
-      npm install &&
+      npm install --include=dev &&
       npm run build --workspace=@tzw-firex/contracts &&
       node scripts/render-build-web.mjs
     staticPublishPath: apps/web/dist
