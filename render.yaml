@@ -14,7 +14,6 @@ services:
       npm run build --workspace=@tzw-firex/contracts &&
       npm run build --workspace=@tzw-firex/api
     startCommand: npm run start --workspace=@tzw-firex/api
-    releaseCommand: npm run db:migrate --workspace=@tzw-firex/api
     healthCheckPath: /health
     autoDeploy: true
     envVars:
@@ -48,8 +47,6 @@ services:
   - type: web
     name: tzw-firex-web
     runtime: static
-    plan: free
-    region: oregon
     repo: https://github.com/0xJonaseb11/firex.mgt
     branch: main
     buildCommand: >-

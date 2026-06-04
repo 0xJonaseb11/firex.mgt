@@ -3,37 +3,30 @@
 expected_name="0xJonaseb11"
 expected_email="sebejaz99@gmail.com"
 
-# Reject pushes that include .env files (except .env.example).
+# Reject pushes whose tip still tracks .env files (except .env.example).
+# Deleting .env in a commit is allowed; only the resulting tree is checked.
 check_push_for_env() {
 	local local_sha="$1"
-	local remote_sha="$2"
-	local range
 
 	if [ "$local_sha" = "0000000000000000000000000000000000000000" ]; then
 		return 0
 	fi
 
-	if [ "$remote_sha" = "0000000000000000000000000000000000000000" ]; then
-		range="$local_sha"
-	else
-		range="${remote_sha}..${local_sha}"
-	fi
-
 	blocked=$(
-		git diff --name-only "$range" 2>/dev/null |
+		git ls-tree -r --name-only "$local_sha" 2>/dev/null |
 			grep -E '(^|/)\.env$|(^|/)\.env\.[^/]+$|\.env\.local$' |
 			grep -vE '\.env\.example$' || true
 	)
 
 	if [ -n "$blocked" ]; then
-		echo "Push blocked: .env files must not be pushed." >&2
+		echo "Push blocked: .env files must not be on the remote branch." >&2
 		echo "$blocked" | sed 's/^/  /' >&2
 		exit 1
 	fi
 }
 
 while read -r local_ref local_sha remote_ref remote_sha; do
-	check_push_for_env "$local_sha" "$remote_sha"
+	check_push_for_env "$local_sha"
 done
 
 name=$(git config --get user.name)
