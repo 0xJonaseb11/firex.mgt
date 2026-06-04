@@ -4,7 +4,7 @@ import {
 	completeInspectionSchema,
 	inspectionFilterSchema,
 	scheduleInspectionSchema,
-} from "@repo/contracts";
+} from "@tzw-firex/contracts";
 
 import { extinguishersApi } from "@web/api/extinguishers";
 import { inspectionsApi } from "@web/api/inspections";

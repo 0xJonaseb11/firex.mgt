@@ -4,7 +4,7 @@ import type {
 	ExtinguisherType,
 	InspectionStatus,
 	UserRole,
-} from "@repo/contracts";
+} from "@tzw-firex/contracts";
 
 export const roleLabels: Record<UserRole, string> = {
 	user: "User",

@@ -6,7 +6,7 @@ import {
 	inspectionFilterSchema,
 	paginationSchema,
 	scheduleInspectionSchema,
-} from "@repo/contracts";
+} from "@tzw-firex/contracts";
 
 import {
 	createInspection,

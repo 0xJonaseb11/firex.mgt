@@ -5,7 +5,7 @@ import {
 	idParamSchema,
 	paginationSchema,
 	updateExtinguisherSchema,
-} from "@repo/contracts";
+} from "@tzw-firex/contracts";
 
 import {
 	createExtinguisher,

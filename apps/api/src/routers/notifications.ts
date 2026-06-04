@@ -1,5 +1,5 @@
 import { Router } from "express";
-import { idParamSchema, paginationSchema } from "@repo/contracts";
+import { idParamSchema, paginationSchema } from "@tzw-firex/contracts";
 import { z } from "zod";
 
 import {

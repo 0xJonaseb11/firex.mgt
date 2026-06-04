@@ -1,7 +1,7 @@
 import type { ReactNode } from "react";
 import { Navigate } from "react-router-dom";
 
-import type { UserRole } from "@repo/contracts";
+import type { UserRole } from "@tzw-firex/contracts";
 
 import { useAuth } from "@web/contexts/AuthContext";
 

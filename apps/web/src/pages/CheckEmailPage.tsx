@@ -1,6 +1,6 @@
 import { useState, type FormEvent } from "react";
 import { Link, useSearchParams } from "react-router-dom";
-import { resendVerificationSchema } from "@repo/contracts";
+import { resendVerificationSchema } from "@tzw-firex/contracts";
 
 import { authApi } from "@web/api/auth";
 import { ApiError } from "@web/api/client";

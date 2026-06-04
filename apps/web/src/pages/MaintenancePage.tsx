@@ -1,5 +1,5 @@
 import { useCallback, useEffect, useState, type FormEvent } from "react";
-import { createMaintenanceSchema, maintenanceFilterSchema } from "@repo/contracts";
+import { createMaintenanceSchema, maintenanceFilterSchema } from "@tzw-firex/contracts";
 
 import { extinguishersApi } from "@web/api/extinguishers";
 import { maintenanceApi } from "@web/api/maintenance";

@@ -19,11 +19,11 @@ export default defineConfig({
 		alias: {
 			"@web": path.resolve(dirname, "src"),
 			// Use contracts source in dev so Vite resolves ./common.js → common.ts
-			"@repo/contracts": contractsEntry,
+			"@tzw-firex/contracts": contractsEntry,
 		},
 	},
 	optimizeDeps: {
-		include: ["@repo/contracts", "zod"],
+		include: ["@tzw-firex/contracts", "zod"],
 	},
 	server: {
 		port: 5173,

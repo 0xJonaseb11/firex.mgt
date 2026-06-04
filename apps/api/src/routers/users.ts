@@ -1,5 +1,5 @@
 import { Router } from "express";
-import { idParamSchema, paginationSchema, updateUserRoleSchema } from "@repo/contracts";
+import { idParamSchema, paginationSchema, updateUserRoleSchema } from "@tzw-firex/contracts";
 
 import {
 	deleteUser,

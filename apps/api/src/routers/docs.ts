@@ -4,8 +4,7 @@ import swaggerUi from "swagger-ui-express";
 
 import { openApiDocument } from "@api/openapi";
 
-// Swagger UI ships inline scripts/styles that the API's strict default CSP
-// blocks, so the docs get their own relaxed-but-scoped policy.
+
 const swaggerCsp = helmet({
 	contentSecurityPolicy: {
 		directives: {
@@ -31,7 +30,9 @@ export const createDocsRouter = (): Router => {
 		"/docs",
 		swaggerCsp,
 		swaggerUi.serve,
-		swaggerUi.setup(openApiDocument, { customSiteTitle: "API Docs" }),
+		swaggerUi.setup(openApiDocument, {
+			customSiteTitle: "TZW FireEx API Docs",
+		}),
 	);
 
 	return router;

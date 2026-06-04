@@ -1,7 +1,7 @@
 {
-	"name": "restful-template",
+	"name": "tzw-firex",
 	"version": "1.0.0",
-	"description": "React + TypeScript frontend with Express API monorepo",
+	"description": "TZW FireEx — Fire Extinguisher Management System (React + Express monorepo)",
 	"main": "index.js",
 	"private": true,
 	"workspaces": [
@@ -9,7 +9,7 @@
 		"packages/*"
 	],
 	"scripts": {
-		"predev": "npm run build --workspace=@repo/contracts",
+		"predev": "npm run build --workspace=@tzw-firex/contracts",
 		"dev": "node scripts/dev.mjs",
 		"dev:turbo": "turbo dev",
 		"build": "turbo build",
@@ -18,11 +18,11 @@
 		"format": "biome format --write .",
 		"setup:git": "powershell -ExecutionPolicy Bypass -File scripts/setup-git-hooks.ps1",
 		"env:setup": "node scripts/setup-api-env.mjs",
-		"db:migrate": "npm run db:migrate --workspace=api",
-		"db:test": "npm run db:test --workspace=api",
+		"db:migrate": "npm run db:migrate --workspace=@tzw-firex/api",
+		"db:test": "npm run db:test --workspace=@tzw-firex/api",
 		"db:backup": "node scripts/db-backup.mjs"
 	},
-	"keywords": [],
+	"keywords": ["tzw-firex", "fire-extinguisher", "fms", "tzw"],
 	"author": "0xJonaseb11 <sebejaz99@gmail.com>",
 	"license": "ISC",
 	"packageManager": "npm@10.9.2",

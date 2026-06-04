@@ -91,7 +91,7 @@ if (!urls) {
 
 mkdirSync(outDir, { recursive: true });
 const stamp = new Date().toISOString().replace(/[:.]/g, "-");
-const outfile = path.join(outDir, `tzw-backup-${stamp}.sql`);
+const outfile = path.join(outDir, `firex-backup-${stamp}.sql`);
 
 function runPgDump(url, index) {
 	let host = "database";

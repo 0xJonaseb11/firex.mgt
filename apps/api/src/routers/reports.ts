@@ -54,7 +54,7 @@ export function createReportsRouter(): Router {
 				res.setHeader("Content-Type", "application/pdf");
 				res.setHeader(
 					"Content-Disposition",
-					`attachment; filename="tzw-report-${timestamp}.pdf"`,
+					`attachment; filename="firex-report-${timestamp}.pdf"`,
 				);
 				res.send(buffer);
 				return;
@@ -64,7 +64,7 @@ export function createReportsRouter(): Router {
 			res.setHeader("Content-Type", "text/csv");
 			res.setHeader(
 				"Content-Disposition",
-				`attachment; filename="tzw-report-${timestamp}.csv"`,
+				`attachment; filename="firex-report-${timestamp}.csv"`,
 			);
 			res.send(buffer);
 		}),

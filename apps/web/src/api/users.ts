@@ -1,4 +1,4 @@
-import type { UserRole } from "@repo/contracts";
+import type { UserRole } from "@tzw-firex/contracts";
 
 import { apiRequest, buildQuery } from "@web/api/client";
 import type { PaginatedResponse, User } from "@web/api/types";

@@ -1,4 +1,4 @@
-import type { UserRole } from "@repo/contracts";
+import type { UserRole } from "@tzw-firex/contracts";
 
 import { apiPath } from "@web/lib/api-path";
 

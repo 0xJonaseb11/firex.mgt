@@ -1,1 +1,1 @@
-export { default } from "@repo/eslint-config/node";
+export { default } from "@tzw-firex/eslint-config/node";

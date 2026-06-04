@@ -7,7 +7,7 @@ import type {
 	ResetPasswordInput,
 	UpdateProfileInput,
 	VerifyEmailInput,
-} from "@repo/contracts";
+} from "@tzw-firex/contracts";
 
 import { apiRequest } from "@web/api/client";
 import type { User } from "@web/api/types";

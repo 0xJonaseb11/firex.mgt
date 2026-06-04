@@ -146,7 +146,7 @@ export function exportReportPdf(summary: ReportSummary): Promise<Buffer> {
 		doc.on("end", () => resolve(Buffer.concat(chunks)));
 		doc.on("error", reject);
 
-		doc.fontSize(18).text("TZW Fire Extinguisher Report", { align: "center" });
+		doc.fontSize(18).text("TZW FireEx — Extinguisher Report", { align: "center" });
 		doc.moveDown();
 		doc.fontSize(10).text(`Generated: ${summary.generatedAt}`);
 		if (summary.period?.fromDate || summary.period?.toDate) {

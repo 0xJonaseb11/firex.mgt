@@ -8,7 +8,7 @@ import {
 	resetPasswordSchema,
 	updateProfileSchema,
 	verifyEmailSchema,
-} from "@repo/contracts";
+} from "@tzw-firex/contracts";
 
 import config from "@api/config";
 import {

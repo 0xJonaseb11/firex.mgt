@@ -25,7 +25,7 @@ export function AuthLayout() {
 		<div className="auth-layout">
 			<div className="auth-card">
 				<header className="auth-card__header">
-					<p className="auth-card__eyebrow">TZW Fire Safety</p>
+					<p className="auth-card__eyebrow">TZW FireEx</p>
 					<h1 className="auth-card__title">Extinguisher Management</h1>
 				</header>
 				<div className="auth-card__body">

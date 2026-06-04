@@ -1,7 +1,7 @@
 import type {
 	CreateExtinguisherInput,
 	UpdateExtinguisherInput,
-} from "@repo/contracts";
+} from "@tzw-firex/contracts";
 
 import { apiRequest, buildQuery } from "@web/api/client";
 import type { Extinguisher, PaginatedResponse } from "@web/api/types";

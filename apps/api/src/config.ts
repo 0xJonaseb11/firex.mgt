@@ -41,7 +41,7 @@ const configSchema = z
 		RESEND_API_KEY: z.string().optional(),
 		BREVO_API_KEY: z.string().optional(),
 		BREVO_SENDER_EMAIL: z.string().email().optional(),
-		BREVO_SENDER_NAME: z.string().default("TZW Fire Safety"),
+		BREVO_SENDER_NAME: z.string().default("TZW FireEx"),
 		SMTP_HOST: z.string().default("smtp.gmail.com"),
 		SMTP_PORT: z.coerce.number().default(587),
 		SMTP_SECURE: z
@@ -50,7 +50,7 @@ const configSchema = z
 			.transform((v) => v === "true"),
 		SMTP_USER: z.string().optional(),
 		SMTP_PASS: z.string().optional(),
-		EMAIL_FROM: z.string().default("TZW Fire Safety <onboarding@resend.dev>"),
+		EMAIL_FROM: z.string().default("TZW FireEx <onboarding@resend.dev>"),
 		APP_PUBLIC_URL: z.string().url().default("http://localhost:5173"),
 	})
 	.superRefine((env, ctx) => {

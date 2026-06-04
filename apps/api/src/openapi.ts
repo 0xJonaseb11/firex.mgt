@@ -239,9 +239,10 @@ const paths = {
 export const openApiDocument = {
 	openapi: "3.0.3",
 	info: {
-		title: "API",
+		title: "TZW FireEx API",
 		version: "1.0.0",
-		description: "RESTful API with cookie-based authentication and RBAC.",
+		description:
+			"Fire Extinguisher Management System API — cookie-based authentication and RBAC.",
 	},
 	tags: [
 		{ name: "Health" },

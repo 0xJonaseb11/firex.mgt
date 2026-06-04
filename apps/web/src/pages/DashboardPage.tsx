@@ -125,7 +125,7 @@ export function DashboardPage() {
 		<div className="page">
 			<section className={`dashboard-hero dashboard-hero--${user.role}`}>
 				<div className="dashboard-hero__content">
-					<p className="dashboard-hero__eyebrow">TZW Fire Safety</p>
+					<p className="dashboard-hero__eyebrow">TZW FireEx</p>
 					<h1 className="dashboard-hero__title">{pageTitle}</h1>
 					<p className="dashboard-hero__scope">
 						<span

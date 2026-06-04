@@ -1,6 +1,6 @@
 import { useState, type FormEvent } from "react";
 import { Link } from "react-router-dom";
-import { forgotPasswordSchema, resetPasswordSchema } from "@repo/contracts";
+import { forgotPasswordSchema, resetPasswordSchema } from "@tzw-firex/contracts";
 
 import { authApi } from "@web/api/auth";
 import { ApiError } from "@web/api/client";

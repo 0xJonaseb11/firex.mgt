@@ -1,6 +1,6 @@
 import { useState, type FormEvent } from "react";
 import { Link, useLocation, useNavigate } from "react-router-dom";
-import { loginSchema } from "@repo/contracts";
+import { loginSchema } from "@tzw-firex/contracts";
 
 import { ErrorAlert } from "@web/components/ErrorAlert";
 import { FormField } from "@web/components/FormField";

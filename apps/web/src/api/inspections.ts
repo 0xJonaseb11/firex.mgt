@@ -2,7 +2,7 @@ import type {
 	CancelInspectionInput,
 	CompleteInspectionInput,
 	ScheduleInspectionInput,
-} from "@repo/contracts";
+} from "@tzw-firex/contracts";
 
 import { apiRequest, buildQuery } from "@web/api/client";
 import type { Inspection, PaginatedResponse } from "@web/api/types";

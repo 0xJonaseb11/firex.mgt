@@ -79,9 +79,9 @@ process.on("SIGINT", () => shutdown(0));
 process.on("SIGTERM", () => shutdown(0));
 
 try {
-	spawnDev("api", ["run", "dev", "--workspace=api"]);
+	spawnDev("api", ["run", "dev", "--workspace=@tzw-firex/api"]);
 	await waitForApi();
-	spawnDev("web", ["run", "dev", "--workspace=web"]);
+	spawnDev("web", ["run", "dev", "--workspace=@tzw-firex/web"]);
 	process.stdout.write(
 		"[dev] API + web running (API :{port}, web http://localhost:5173)\n".replace(
 			"{port}",

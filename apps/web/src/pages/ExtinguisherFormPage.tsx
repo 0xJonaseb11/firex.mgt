@@ -6,7 +6,7 @@ import {
 	extinguisherStatusSchema,
 	extinguisherTypeSchema,
 	updateExtinguisherSchema,
-} from "@repo/contracts";
+} from "@tzw-firex/contracts";
 
 import { extinguishersApi } from "@web/api/extinguishers";
 import { ApiError } from "@web/api/client";

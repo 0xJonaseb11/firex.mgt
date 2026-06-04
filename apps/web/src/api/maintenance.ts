@@ -1,4 +1,4 @@
-import type { CreateMaintenanceInput } from "@repo/contracts";
+import type { CreateMaintenanceInput } from "@tzw-firex/contracts";
 
 import { apiRequest, buildQuery } from "@web/api/client";
 import type { MaintenanceRecord, PaginatedResponse } from "@web/api/types";

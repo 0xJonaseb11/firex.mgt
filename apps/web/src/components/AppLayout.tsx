@@ -1,7 +1,7 @@
 import { useCallback, useEffect, useState } from "react";
 import { NavLink, Outlet, useLocation, useNavigate } from "react-router-dom";
 
-import type { UserRole } from "@repo/contracts";
+import type { UserRole } from "@tzw-firex/contracts";
 
 import { ConfirmDialog } from "@web/components/ConfirmDialog";
 import { EmailVerificationBanner } from "@web/components/EmailVerificationBanner";
@@ -114,8 +114,8 @@ export function AppLayout() {
 					</span>
 				</button>
 				<div className="mobile-topbar__brand">
-					<span className="mobile-topbar__mark">TZW</span>
-					<span className="mobile-topbar__title">Fire Safety</span>
+					<span className="mobile-topbar__mark">FireEx</span>
+					<span className="mobile-topbar__title">TZW Management</span>
 				</div>
 			</header>
 
@@ -129,10 +129,10 @@ export function AppLayout() {
 
 			<aside id="app-sidebar" className="sidebar">
 				<div className="sidebar__brand">
-					<span className="sidebar__brand-mark">TZW</span>
+					<span className="sidebar__brand-mark">FireEx</span>
 					<div>
-						<p className="sidebar__brand-title">Fire Safety</p>
-						<p className="sidebar__brand-subtitle">Management</p>
+						<p className="sidebar__brand-title">TZW FireEx</p>
+						<p className="sidebar__brand-subtitle">Extinguisher Management</p>
 					</div>
 				</div>
 				<nav className="sidebar__nav" aria-label="Main navigation">

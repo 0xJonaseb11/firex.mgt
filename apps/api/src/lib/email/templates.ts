@@ -10,19 +10,19 @@ function layout(title: string, body: string, actionUrl?: string, actionLabel?: s
 	return `<!DOCTYPE html>
 <html>
 <body style="font-family:system-ui,sans-serif;line-height:1.5;color:#111827;max-width:560px;margin:0 auto;padding:24px">
-  <p style="margin:0 0 8px;font-size:13px;color:#6b7280">TZW Fire Safety</p>
+  <p style="margin:0 0 8px;font-size:13px;color:#6b7280">TZW FireEx</p>
   <h1 style="margin:0 0 16px;font-size:20px">${title}</h1>
   ${body}
   ${button}
   <hr style="margin:32px 0;border:none;border-top:1px solid #e5e7eb" />
-  <p style="margin:0;font-size:12px;color:#9ca3af">This is an automated message from the TZW Fire Extinguisher Management System.</p>
+  <p style="margin:0;font-size:12px;color:#9ca3af">This is an automated message from TZW FireEx — Fire Extinguisher Management System.</p>
 </body>
 </html>`;
 }
 
 export function verificationEmail(firstName: string, verifyUrl: string) {
 	return {
-		subject: "Confirm your TZW Fire Safety account",
+		subject: "Confirm your TZW FireEx account",
 		html: layout(
 			"Confirm your email",
 			`<p>Hi ${firstName},</p>
@@ -37,7 +37,7 @@ export function verificationEmail(firstName: string, verifyUrl: string) {
 
 export function passwordResetEmail(firstName: string, resetUrl: string) {
 	return {
-		subject: "Reset your TZW Fire Safety password",
+		subject: "Reset your TZW FireEx password",
 		html: layout(
 			"Password reset",
 			`<p>Hi ${firstName},</p>

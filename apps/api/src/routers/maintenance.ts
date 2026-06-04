@@ -4,7 +4,7 @@ import {
 	idParamSchema,
 	maintenanceFilterSchema,
 	paginationSchema,
-} from "@repo/contracts";
+} from "@tzw-firex/contracts";
 
 import {
 	createMaintenanceLog,

@@ -1,4 +1,4 @@
-# TZW Fire Safety — Supabase SQL Editor Pack (Examiner)
+# TZW FireEx — Supabase SQL Editor Pack (Examiner)
 
 Run these scripts in **Supabase Dashboard → SQL Editor**. They mirror what the REST API returns and support live demonstration during marking.
 

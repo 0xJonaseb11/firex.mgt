@@ -105,7 +105,7 @@ export function ReportsPage() {
 			const url = URL.createObjectURL(blob);
 			const anchor = document.createElement("a");
 			anchor.href = url;
-			anchor.download = `tzw-report.${format}`;
+			anchor.download = `firex-report.${format}`;
 			anchor.click();
 			URL.revokeObjectURL(url);
 			toast.success(`${format.toUpperCase()} report downloaded.`);

@@ -1,6 +1,6 @@
 import { useState, type FormEvent } from "react";
 import { useNavigate } from "react-router-dom";
-import { changePasswordSchema, updateProfileSchema } from "@repo/contracts";
+import { changePasswordSchema, updateProfileSchema } from "@tzw-firex/contracts";
 
 import { authApi } from "@web/api/auth";
 import { ApiError } from "@web/api/client";

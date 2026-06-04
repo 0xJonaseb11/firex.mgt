@@ -1,6 +1,6 @@
 import { useCallback, useEffect, useState } from "react";
 import { Link } from "react-router-dom";
-import { extinguisherFilterSchema } from "@repo/contracts";
+import { extinguisherFilterSchema } from "@tzw-firex/contracts";
 
 import { extinguishersApi } from "@web/api/extinguishers";
 import { ApiError } from "@web/api/client";

@@ -1,7 +1,7 @@
 {
-	"name": "@repo/contracts",
+	"name": "@tzw-firex/contracts",
 	"version": "1.0.0",
-	"description": "Shared Zod schemas for TZW Fire Extinguisher Management System",
+	"description": "Shared Zod schemas for TZW FireEx Fire Extinguisher Management System",
 	"type": "module",
 	"main": "./dist/index.js",
 	"types": "./dist/index.d.ts",
@@ -20,7 +20,7 @@
 		"zod": "^4.4.3"
 	},
 	"devDependencies": {
-		"@repo/tsconfig": "*",
+		"@tzw-firex/tsconfig": "*",
 		"typescript": "^6.0.3"
 	}
 }

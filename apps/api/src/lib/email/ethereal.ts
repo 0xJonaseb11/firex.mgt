@@ -6,7 +6,7 @@ import { recordDevMail } from "@api/lib/email/dev-outbox";
 import logger from "@api/utils/logger";
 
 let transporter: Transporter | null = null;
-let fromAddress = "noreply@tzw-fire.test";
+let fromAddress = "noreply@tzw-firex.local";
 
 export async function initEtherealTransport(): Promise<void> {
 	if (transporter) {
@@ -38,7 +38,7 @@ export async function sendViaEthereal(input: SendEmailInput): Promise<boolean> {
 		}
 
 		const info = await transporter!.sendMail({
-			from: `"TZW Fire Safety" <${fromAddress}>`,
+			from: `"TZW FireEx" <${fromAddress}>`,
 			to: input.to,
 			subject: input.subject,
 			html: input.html,

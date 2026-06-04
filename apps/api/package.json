@@ -1,7 +1,7 @@
 {
-	"name": "api",
+	"name": "@tzw-firex/api",
 	"version": "1.0.0",
-	"description": "TZW Fire Extinguisher Management API",
+	"description": "TZW FireEx Fire Extinguisher Management API",
 	"main": "index.js",
 	"scripts": {
 		"dev": "tsx watch src/index.ts",
@@ -18,7 +18,7 @@
 	"license": "ISC",
 	"type": "module",
 	"dependencies": {
-		"@repo/contracts": "*",
+		"@tzw-firex/contracts": "*",
 		"bcryptjs": "^3.0.3",
 		"compression": "^1.8.1",
 		"cookie-parser": "^1.4.7",
@@ -39,8 +39,8 @@
 		"zod": "^4.4.3"
 	},
 	"devDependencies": {
-		"@repo/eslint-config": "*",
-		"@repo/tsconfig": "*",
+		"@tzw-firex/eslint-config": "*",
+		"@tzw-firex/tsconfig": "*",
 		"@types/bcryptjs": "^3.0.0",
 		"@types/compression": "^1.8.1",
 		"@types/cookie-parser": "^1.4.10",

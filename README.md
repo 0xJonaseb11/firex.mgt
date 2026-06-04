@@ -1,6 +1,6 @@
-# TZW Fire Safety — Management
+# TZW FireEx — Fire Extinguisher Management System
 
-Fire extinguisher inventory, inspections, maintenance, and reporting. Monorepo with a React client and Express API backed by PostgreSQL.
+TZW LTD fire extinguisher inventory, inspections, maintenance, and reporting. Monorepo (`tzw-firex`) with a React client and Express API backed by PostgreSQL.
 
 ## Stack
 
@@ -21,7 +21,7 @@ Fire extinguisher inventory, inspections, maintenance, and reporting. Monorepo w
 
 ```bash
 git clone <repository-url>
-cd RESTFUL
+cd tzw-firex
 npm install
 ```
 
@@ -79,9 +79,9 @@ apps/
   api/          REST API, Drizzle schema and migrations
   web/          React SPA
 packages/
-  contracts/    Shared Zod schemas
-  eslint-config/
-  tsconfig/
+  contracts/    @tzw-firex/contracts — shared Zod schemas
+  eslint-config/ @tzw-firex/eslint-config
+  tsconfig/     @tzw-firex/tsconfig
 scripts/        Dev orchestration, backups, env helpers
 migrations/sql/ Ad-hoc SQL for Supabase SQL Editor
 ```

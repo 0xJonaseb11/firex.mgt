@@ -1,5 +1,5 @@
 import { useCallback, useEffect, useMemo, useState } from "react";
-import { userRoleSchema } from "@repo/contracts";
+import { userRoleSchema } from "@tzw-firex/contracts";
 
 import { usersApi } from "@web/api/users";
 import { ApiError } from "@web/api/client";
