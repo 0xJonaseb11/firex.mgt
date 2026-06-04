@@ -92,14 +92,6 @@ const configSchema = z
 			});
 		}
 
-		if (!env.DOMAIN) {
-			ctx.addIssue({
-				code: "custom",
-				path: ["DOMAIN"],
-				message: "DOMAIN is required in production (used to scope auth cookies)",
-			});
-		}
-
 		if (env.CORS_ORIGIN === "*") {
 			ctx.addIssue({
 				code: "custom",
@@ -121,6 +113,15 @@ const databaseUrl = resolveDatabaseUrlFromEnv(parsed.data);
 const migrationDatabaseUrl =
 	parsed.data.DATABASE_URL_DIRECT?.trim() || databaseUrl;
 
+/** Render fromService often supplies host only (no scheme). */
+function normalizePublicUrl(value: string): string {
+	const trimmed = value.trim().replace(/\/$/, "");
+	if (!trimmed) {
+		return trimmed;
+	}
+	return trimmed.startsWith("http") ? trimmed : `https://${trimmed}`;
+}
+
 export const config = {
 	port: parsed.data.PORT,
 	databaseUrl,
@@ -131,7 +132,7 @@ export const config = {
 	commandTimeoutMs: parsed.data.COMMAND_TIMEOUT_MS,
 	rateLimitWindowMs: parsed.data.RATE_LIMIT_WINDOW_MS,
 	rateLimitMaxRequests: parsed.data.RATE_LIMIT_MAX_REQUESTS,
-	corsOrigin: parsed.data.CORS_ORIGIN,
+	corsOrigin: normalizePublicUrl(parsed.data.CORS_ORIGIN),
 	isDevelopment: parsed.data.NODE_ENV === "development",
 	isProduction: parsed.data.NODE_ENV === "production",
 	domain: parsed.data.DOMAIN,
@@ -152,7 +153,7 @@ export const config = {
 	smtpUser: parsed.data.SMTP_USER?.trim() || undefined,
 	smtpPass: parsed.data.SMTP_PASS?.trim() || undefined,
 	emailFrom: parsed.data.EMAIL_FROM,
-	appPublicUrl: parsed.data.APP_PUBLIC_URL.replace(/\/$/, ""),
+	appPublicUrl: normalizePublicUrl(parsed.data.APP_PUBLIC_URL),
 };
 
 export default config;

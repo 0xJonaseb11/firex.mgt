@@ -1,0 +1,62 @@
+# TZW FireEx — Render Blueprint (API + static web). Database stays on Supabase.
+# After sync: set secret env vars in the Render Dashboard (from apps/api/.env).
+
+services:
+  - type: web
+    name: tzw-firex-api
+    runtime: node
+    plan: free
+    region: oregon
+    repo: https://github.com/0xJonaseb11/firex.mgt
+    branch: main
+    buildCommand: >-
+      npm install &&
+      npm run build --workspace=@tzw-firex/contracts &&
+      npm run build --workspace=@tzw-firex/api
+    startCommand: npm run start --workspace=@tzw-firex/api
+    healthCheckPath: /health
+    autoDeploy: true
+    envVars:
+      - key: NODE_ENV
+        value: production
+      - key: LOG_LEVEL
+        value: info
+      - key: SUPABASE_URL
+        sync: false
+      - key: SUPABASE_PROJECT_REF
+        sync: false
+      - key: SUPABASE_DB_PASSWORD
+        sync: false
+      - key: SUPABASE_POOLER_HOST
+        sync: false
+      - key: SUPABASE_ANON_KEY
+        sync: false
+      - key: SUPABASE_SERVICE_ROLE_KEY
+        sync: false
+      - key: ACCESS_TOKEN_SECRET
+        sync: false
+      - key: REFRESH_TOKEN_SECRET
+        sync: false
+      - key: EMAIL_PROVIDER
+        value: auto
+      - key: CORS_ORIGIN
+        value: https://tzw-firex-web.onrender.com
+      - key: APP_PUBLIC_URL
+        value: https://tzw-firex-web.onrender.com
+
+  - type: web
+    name: tzw-firex-web
+    runtime: static
+    plan: free
+    region: oregon
+    repo: https://github.com/0xJonaseb11/firex.mgt
+    branch: main
+    buildCommand: >-
+      npm install &&
+      npm run build --workspace=@tzw-firex/contracts &&
+      node scripts/render-build-web.mjs
+    staticPublishPath: apps/web/dist
+    autoDeploy: true
+    envVars:
+      - key: TZW_FIREX_API_HOST
+        value: tzw-firex-api.onrender.com

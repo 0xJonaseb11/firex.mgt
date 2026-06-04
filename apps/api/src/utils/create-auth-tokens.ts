@@ -28,10 +28,10 @@ const REFRESH_TOKEN_TTL = "30d";
 const cookieOpts: CookieOptions = {
 	httpOnly: true,
 	secure: __prod__,
-	sameSite: "lax",
+	// Cross-origin SPA (e.g. Render static site → API) needs SameSite=None.
+	sameSite: __prod__ ? "none" : "lax",
 	path: "/",
-	// Only scope to a parent domain in production; in dev let the browser use the
-	// request host (an empty/invalid domain breaks cookies on localhost).
+	// Optional parent domain (custom domain only). Omit on *.onrender.com subdomains.
 	...(__prod__ && config.domain ? { domain: `.${config.domain}` } : {}),
 	maxAge: 1000 * 60 * 60 * 24 * 30, // 30 days, matches the refresh token
 };
