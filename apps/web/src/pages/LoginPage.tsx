@@ -52,10 +52,10 @@ export function LoginPage() {
 	};
 
 	return (
-		<section>
+		<section className="auth-page">
 			<h2 className="auth-card__section-title">Sign in</h2>
 			{error ? <ErrorAlert message={error} onDismiss={clearError} /> : null}
-			<form className="form-stack" onSubmit={handleSubmit} noValidate>
+			<form className="form-stack auth-form" onSubmit={handleSubmit} noValidate>
 				<FormField
 					label="Email"
 					type="email"
@@ -89,9 +89,12 @@ export function LoginPage() {
 					</Link>
 				</p>
 			) : null}
-			<p className="auth-card__links">
+			<p className="auth-card__links auth-card__links--inline">
 				<Link to="/forgot-password">Forgot password?</Link>
-				<span aria-hidden="true"> | </span>
+				<span className="auth-card__links-sep" aria-hidden="true">
+					{" "}
+					|{" "}
+				</span>
 				<Link to="/register">Create account</Link>
 			</p>
 		</section>

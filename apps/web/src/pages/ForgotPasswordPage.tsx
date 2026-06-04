@@ -101,7 +101,7 @@ export function ForgotPasswordPage() {
 	};
 
 	return (
-		<section>
+		<section className="auth-page">
 			<h2 className="auth-card__section-title">
 				{isResetMode ? "Choose a new password" : "Password reset"}
 			</h2>
@@ -123,7 +123,7 @@ export function ForgotPasswordPage() {
 			{errorMessage ? <ErrorAlert message={errorMessage} /> : null}
 
 			{isResetMode ? (
-				<form className="form-stack" onSubmit={handleReset} noValidate>
+				<form className="form-stack auth-form" onSubmit={handleReset} noValidate>
 					<FormField
 						label="New password"
 						type="password"
@@ -144,7 +144,7 @@ export function ForgotPasswordPage() {
 					</button>
 				</form>
 			) : (
-				<form className="form-stack" onSubmit={handleRequest} noValidate>
+				<form className="form-stack auth-form" onSubmit={handleRequest} noValidate>
 					<FormField
 						label="Email"
 						type="email"

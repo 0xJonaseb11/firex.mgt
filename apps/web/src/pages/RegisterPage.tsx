@@ -55,10 +55,10 @@ export function RegisterPage() {
 	};
 
 	return (
-		<section>
+		<section className="auth-page">
 			<h2 className="auth-card__section-title">Create account</h2>
 			{error ? <ErrorAlert message={error} onDismiss={clearError} /> : null}
-			<form className="form-stack" onSubmit={handleSubmit} noValidate>
+			<form className="form-stack auth-form" onSubmit={handleSubmit} noValidate>
 				<div className="form-row">
 					<FormField
 						label="First name"

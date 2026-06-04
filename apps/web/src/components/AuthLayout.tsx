@@ -1,6 +1,10 @@
-import { Link, Navigate, Outlet } from "react-router-dom";
+import { NavLink, Navigate, Outlet } from "react-router-dom";
 
 import { useAuth } from "@web/contexts/AuthContext";
+
+function authNavClass({ isActive }: { isActive: boolean }) {
+	return isActive ? "auth-card__nav-link auth-card__nav-link--active" : "auth-card__nav-link";
+}
 
 export function AuthLayout() {
 	const { isAuthenticated, loading } = useAuth();
@@ -24,11 +28,19 @@ export function AuthLayout() {
 					<p className="auth-card__eyebrow">TZW Fire Safety</p>
 					<h1 className="auth-card__title">Extinguisher Management</h1>
 				</header>
-				<Outlet />
+				<div className="auth-card__body">
+					<Outlet />
+				</div>
 				<footer className="auth-card__footer">
-					<Link to="/login">Sign in</Link>
-					<Link to="/register">Create account</Link>
-					<Link to="/forgot-password">Reset password</Link>
+					<NavLink to="/login" className={authNavClass} end>
+						Sign in
+					</NavLink>
+					<NavLink to="/register" className={authNavClass}>
+						Create account
+					</NavLink>
+					<NavLink to="/forgot-password" className={authNavClass}>
+						Reset password
+					</NavLink>
 				</footer>
 			</div>
 		</div>
