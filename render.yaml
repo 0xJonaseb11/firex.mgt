@@ -14,6 +14,7 @@ services:
       npm run build --workspace=@tzw-firex/contracts &&
       npm run build --workspace=@tzw-firex/api
     startCommand: npm run start --workspace=@tzw-firex/api
+    releaseCommand: npm run db:migrate --workspace=@tzw-firex/api
     healthCheckPath: /health
     autoDeploy: true
     envVars:
