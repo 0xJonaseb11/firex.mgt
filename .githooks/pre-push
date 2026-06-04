@@ -1,0 +1,27 @@
+#!/bin/sh
+# Only allow pushes from the configured maintainer identity.
+expected_name="0xJonaseb11"
+expected_email="sebejaz99@gmail.com"
+
+name=$(git config --get user.name)
+email=$(git config --get user.email)
+
+if [ "$name" != "$expected_name" ] || [ "$email" != "$expected_email" ]; then
+  echo "Push blocked: this repo is locked to $expected_name <$expected_email>." >&2
+  echo "Current identity: ${name:-<unset>} <${email:-<unset>}>" >&2
+  exit 1
+fi
+
+remote="${1:-origin}"
+url=$(git remote get-url "$remote" 2>/dev/null) || exit 0
+case "$url" in
+  git@github.com:0xJonaseb11/*|git@github.com-0xjonaseb11:0xJonaseb11/*) ;;
+  *)
+    echo "Push blocked: remote must use SSH for 0xJonaseb11 on GitHub." >&2
+    echo "Expected: git@github.com:0xJonaseb11/<repo>.git" >&2
+    echo "Got: $url" >&2
+    exit 1
+    ;;
+esac
+
+exit 0

@@ -9,6 +9,7 @@
 		"packages/*"
 	],
 	"scripts": {
+		"predev": "npm run build --workspace=@repo/contracts",
 		"dev": "node scripts/dev.mjs",
 		"dev:turbo": "turbo dev",
 		"build": "turbo build",
