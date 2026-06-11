@@ -1,7 +1,0 @@
-#!/bin/sh
-# Block commits that still contain Cursor attribution trailers.
-if grep -qiE '(^co-authored-by:.*cursor)|(^made-with:.*cursor)|cursoragent@cursor\.com' "$1"; then
-	echo "commit-msg: Cursor attribution trailers are not allowed in this repository." >&2
-	echo "Disable Cursor Settings → Agents → Attribution, then recommit." >&2
-	exit 1
-fi
